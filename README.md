@@ -69,6 +69,24 @@ Tool policies can restrict allowed tool names, operations, and approver roles. C
 
 `ReleaseWorkflow` coordinates the local path from a typed bundle to a guarded fake ERP call. Invalid bundles stop before approval; valid bundles require an approver and then execute the test double.
 
+## Run the command-line workflow
+
+Review a proposal without executing a tool:
+
+```bash
+python3 -m src.supplychain_tlm.cli examples/shipment_bundle.json
+```
+
+Explicitly approve the local fake ERP action:
+
+```bash
+python3 -m src.supplychain_tlm.cli examples/shipment_bundle.json \
+  --approve-as procurement_manager \
+  --audit audit/workflow.jsonl
+```
+
+The CLI uses a fake ERP connector for development. It does not modify SAP, Oracle, email, or any external system.
+
 ## Roadmap
 
 1. Document schemas and deterministic validation.
