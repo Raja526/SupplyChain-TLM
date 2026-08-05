@@ -27,6 +27,11 @@ class OCRCLITests(unittest.TestCase):
         payload = json.loads(output.getvalue())
         self.assertEqual(payload["quality"]["pages"], 1)
 
+    def test_strict_mode_blocks_uncertain_extraction(self):
+        fake = OCRDocument("scan.png", (OCRPage(1, "unreadable"),))
+        with patch("src.supplychain_tlm.ocr_cli.TesseractProvider.extract", return_value=fake):
+            self.assertEqual(main(["scan.png", "--strict"]), 1)
+
 
 if __name__ == "__main__":
     unittest.main()
