@@ -2,8 +2,10 @@ import json
 import threading
 import unittest
 from http.server import ThreadingHTTPServer
+from functools import partial
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 from src.supplychain_tlm.service import AgentRequestHandler, answer_payload, handle_json, release_payload, serve
@@ -52,6 +54,24 @@ class ServiceTests(unittest.TestCase):
     def test_remote_binding_requires_token(self):
         with self.assertRaisesRegex(ValueError, "bearer token"):
             serve("0.0.0.0", 0, allow_remote=True)
+
+    def test_authenticated_http_endpoint(self):
+        server = ThreadingHTTPServer(("127.0.0.1", 0), partial(AgentRequestHandler, auth_token="secret"))
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        body = json.dumps({"operation": "answer", "bundle": self.bundle, "request": "status"}).encode()
+        try:
+            unauthenticated = Request(f"http://127.0.0.1:{server.server_port}/v1/request", data=body)
+            with self.assertRaises(HTTPError) as error:
+                urlopen(unauthenticated, timeout=5)
+            self.assertEqual(error.exception.code, 401)
+            authenticated = Request(f"http://127.0.0.1:{server.server_port}/v1/request", data=body, headers={"Authorization": "Bearer secret"})
+            with urlopen(authenticated, timeout=5) as response:
+                self.assertEqual(json.loads(response.read())["mode"], "deterministic")
+        finally:
+            server.shutdown()
+            thread.join(timeout=5)
+            server.server_close()
 
 
 if __name__ == "__main__":
