@@ -33,6 +33,16 @@ python3 -m unittest discover -s tests -v
 
 The prototype classifies a request into business capabilities. It is a routing scaffold, not an ML model.
 
+## Validate a document bundle
+
+The first deterministic validation layer compares invoice, purchase order, packing list, and bill of lading data:
+
+```bash
+python3 -m src.supplychain_tlm.validation
+```
+
+Validation failures are returned as typed issue codes such as `PO_NUMBER_MISMATCH`, `CURRENCY_MISMATCH`, and `MISSING_CONTAINER`. These checks are intentionally independent of the language model and should run before a planner proposes an enterprise action.
+
 ## Roadmap
 
 1. Document schemas and deterministic validation.
