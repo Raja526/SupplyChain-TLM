@@ -281,6 +281,8 @@ The same harness can later compare a real CPU inference backend by passing it to
 
 `src/supplychain_tlm/erp.py` defines the ERP connector boundary. `ERPToolAdapter` is invoked only through `ApprovalGate`; `DryRunERPClient` provides a safe local implementation. A future SAP, Oracle, or warehouse client can replace it without giving the model direct system access.
 
+`src/supplychain_tlm/connectors.py` separates SAP, Oracle, and WMS capability protocols from vendor SDKs. `DryRunEnterpriseConnectors` is the local test implementation; production adapters should keep credentials and transport logic outside the planner and model.
+
 The workflow CLI now uses this dry-run connector. Running it without `--approve-as` is review-only; execution requires the explicit `procurement_manager` approval role and records the action in the audit log.
 
 Use `--json` on the workflow CLI for orchestration integrations. It emits a stable review-only or approved-dry-run record containing validation, proposal, result, and audit information.
