@@ -48,6 +48,8 @@ The tool contract now requires all four controls: a typed operation, an idempote
 
 Policy checks occur before execution. A completed idempotency key is rejected on reuse, preventing accidental duplicate ERP mutations during retries.
 
+Audit events can be persisted as JSON Lines. This is a local development format; production deployments should forward the same event contract to a durable, access-controlled audit system.
+
 ## Example decision
 
 “Can this shipment be released?” may require comparing the purchase order, invoice, packing list, bill of lading, HS code, Incoterm, insurance, and clearance status. This is why a shared model plus cross-document context is preferable to one model per document type.

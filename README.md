@@ -63,6 +63,8 @@ The JSON loader performs schema conversion only. It does not trust the extracted
 
 Tool policies can restrict allowed tool names, operations, and approver roles. Completed idempotency keys cannot be executed again.
 
+`JsonlAuditLog` provides append-only audit persistence without a database dependency. It can be reloaded after a process restart for inspection or later migration into an enterprise audit store.
+
 ## Roadmap
 
 1. Document schemas and deterministic validation.

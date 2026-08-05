@@ -1,6 +1,8 @@
 import unittest
+from tempfile import TemporaryDirectory
+from pathlib import Path
 
-from src.supplychain_tlm.tools import ApprovalGate, FakeERPTool, ToolCall, ToolPolicy
+from src.supplychain_tlm.tools import ApprovalGate, FakeERPTool, JsonlAuditLog, ToolCall, ToolPolicy
 
 
 class ToolBoundaryTests(unittest.TestCase):
@@ -31,6 +33,15 @@ class ToolBoundaryTests(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             self.gate.execute(self.tool, self.call, approval)
         self.assertEqual(self.gate.audit.events[-1].event_type, "duplicate_tool_call")
+
+    def test_jsonl_audit_survives_reload(self):
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "audit.jsonl"
+            audit = JsonlAuditLog(path)
+            gate = ApprovalGate(audit=audit)
+            gate.approve("proposal-1", "procurement_manager")
+            self.assertEqual(JsonlAuditLog(path).persisted_events()[0].event_type, "approval")
+            self.assertEqual(len(JsonlAuditLog(path).persisted_events()), 1)
 
 
 if __name__ == "__main__":

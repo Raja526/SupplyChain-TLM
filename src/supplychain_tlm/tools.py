@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+import json
+from pathlib import Path
 from typing import Any, Protocol
 import uuid
 
@@ -61,6 +63,30 @@ class AuditLog:
 
     def record(self, event_type: str, reference: str, details: str) -> None:
         self.events.append(AuditEvent(event_type, datetime.now(timezone.utc).isoformat(), reference, details))
+
+
+class JsonlAuditLog(AuditLog):
+    """Append-only audit log that remains readable after process restart."""
+
+    def __init__(self, path: str | Path) -> None:
+        super().__init__()
+        self.path = Path(path)
+
+    def record(self, event_type: str, reference: str, details: str) -> None:
+        super().record(event_type, reference, details)
+        event = self.events[-1]
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        with self.path.open("a", encoding="utf-8") as stream:
+            stream.write(json.dumps(event.__dict__, sort_keys=True) + "\n")
+
+    def persisted_events(self) -> tuple[AuditEvent, ...]:
+        if not self.path.exists():
+            return ()
+        events = []
+        for line in self.path.read_text(encoding="utf-8").splitlines():
+            if line.strip():
+                events.append(AuditEvent(**json.loads(line)))
+        return tuple(events)
 
 
 @dataclass
