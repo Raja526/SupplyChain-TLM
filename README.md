@@ -115,6 +115,10 @@ This is a small lexical baseline. A production RAG layer should add versioned so
 
 The release planner now attaches retrieved reference IDs to each `Plan`. These references are advisory evidence; validation remains the hard gate and the planner does not treat retrieved text as authorization.
 
+## Domain adapters
+
+`src/supplychain_tlm/domains.py` provides shared-fact adapters for Financial, Shipping, Customs, Warehouse, and Compliance capabilities. They are modular context providers, not separate models, and can feed the same SupplyChain-TLM.
+
 ## Roadmap
 
 1. Document schemas and deterministic validation.

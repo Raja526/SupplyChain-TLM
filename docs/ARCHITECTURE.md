@@ -60,6 +60,8 @@ The local knowledge index is context retrieval only. It does not make a complian
 
 Planner outputs carry reference IDs so a reviewer can inspect the guidance used during proposal generation. References never override deterministic validation or approval policy.
 
+Domain adapters expose capability-specific views over the same typed document bundle. This preserves cross-document context while allowing specialized prompts, rules, or future LoRA/sparse experts.
+
 ## Example decision
 
 “Can this shipment be released?” may require comparing the purchase order, invoice, packing list, bill of lading, HS code, Incoterm, insurance, and clearance status. This is why a shared model plus cross-document context is preferable to one model per document type.
