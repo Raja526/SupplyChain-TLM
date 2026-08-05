@@ -314,6 +314,8 @@ Use `GET /metrics` for Prometheus-compatible request, response, and uptime count
 
 Remote binding is rejected by default; use `--allow-remote --token "$SUPPLYCHAIN_SERVICE_TOKEN"` only behind an authenticated network boundary. A bearer token is mandatory for remote binding.
 
+Build the optional non-root container image with `docker build -t supplychain-tlm .`. Run it with `-e SUPPLYCHAIN_SERVICE_TOKEN=... -p 8080:8080`; model weights, tests, audit logs, and review queues are intentionally excluded from the image.
+
 Completed tool-call idempotency is rehydrated from the append-only audit log, so restarting the process does not make an already executed ERP operation eligible for repetition.
 
 Approvals are also bound to the call's idempotency/proposal key; an approval for one proposal cannot authorize a different operation.
