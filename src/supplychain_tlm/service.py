@@ -9,6 +9,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import ipaddress
 import os
 from functools import partial
+import threading
+import time
 from typing import Any
 
 from .erp import DryRunERPClient, ERPToolAdapter
@@ -17,6 +19,33 @@ from .ingest import load_bundle
 from .model import RuleBasedSupplyChainTLM
 from .tools import ApprovalGate, JsonlAuditLog, ToolPolicy
 from .workflow import ReleaseWorkflow
+
+
+class ServiceMetrics:
+    def __init__(self) -> None:
+        self.started_at = time.time()
+        self.requests_total = 0
+        self.responses_2xx = 0
+        self.responses_4xx = 0
+        self._lock = threading.Lock()
+
+    def record(self, status: int) -> None:
+        with self._lock:
+            self.requests_total += 1
+            if 200 <= status < 300:
+                self.responses_2xx += 1
+            elif 400 <= status < 500:
+                self.responses_4xx += 1
+
+    def prometheus(self) -> bytes:
+        with self._lock:
+            body = (
+                f"supplychain_requests_total {self.requests_total}\n"
+                f"supplychain_responses_2xx_total {self.responses_2xx}\n"
+                f"supplychain_responses_4xx_total {self.responses_4xx}\n"
+                f"supplychain_uptime_seconds {max(0.0, time.time() - self.started_at):.3f}\n"
+            )
+        return body.encode("utf-8")
 
 
 def answer_payload(bundle_path: str, request: str) -> dict[str, Any]:
@@ -63,13 +92,16 @@ class AgentRequestHandler(BaseHTTPRequestHandler):
 
     def __init__(self, request: Any, client_address: Any, server: Any, auth_token: str | None = None) -> None:
         self.auth_token = auth_token
+        self.metrics = getattr(server, "service_metrics", ServiceMetrics())
         super().__init__(request, client_address, server)
 
     def do_POST(self) -> None:  # noqa: N802 - stdlib handler API
         if self.auth_token and self.headers.get("Authorization") != f"Bearer {self.auth_token}":
+            self.metrics.record(401)
             self.send_error(401, "authorization required")
             return
         if self.path != "/v1/request":
+            self.metrics.record(404)
             self.send_error(404, "use POST /v1/request")
             return
         try:
@@ -78,24 +110,42 @@ class AgentRequestHandler(BaseHTTPRequestHandler):
                 raise ValueError("request body must be between 1 byte and 1 MB")
             result = handle_json(self.rfile.read(size).decode("utf-8"))
         except (ValueError, KeyError, json.JSONDecodeError) as error:
+            self.metrics.record(400)
             self.send_error(400, str(error))
             return
         body = result.encode("utf-8")
         self.send_response(200)
+        self.metrics.record(200)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
 
     def do_GET(self) -> None:  # noqa: N802 - stdlib handler API
+        if self.path == "/metrics":
+            if self.auth_token and self.headers.get("Authorization") != f"Bearer {self.auth_token}":
+                self.metrics.record(401)
+                self.send_error(401, "authorization required")
+                return
+            self.send_response(200)
+            self.metrics.record(200)
+            body = self.metrics.prometheus()
+            self.send_header("Content-Type", "text/plain; version=0.0.4")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
         if self.path != "/healthz":
+            self.metrics.record(404)
             self.send_error(404, "use GET /healthz")
             return
         if self.auth_token and self.headers.get("Authorization") != f"Bearer {self.auth_token}":
+            self.metrics.record(401)
             self.send_error(401, "authorization required")
             return
         body = b'{"status":"ok"}'
         self.send_response(200)
+        self.metrics.record(200)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
@@ -118,6 +168,7 @@ def serve(host: str = "127.0.0.1", port: int = 8080, *, allow_remote: bool = Fal
         raise ValueError("remote binding requires a bearer token")
     handler = partial(AgentRequestHandler, auth_token=token)
     server = ThreadingHTTPServer((host, port), handler)
+    server.service_metrics = ServiceMetrics()
     print(f"supplychain service listening on http://{host}:{port}/v1/request")
     try:
         server.serve_forever()
