@@ -15,6 +15,13 @@ class CheckpointTests(unittest.TestCase):
             report = inspect_checkpoint(root)
             self.assertTrue(report.passed)
 
+    def test_nested_qwen_text_config_passes(self):
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "config.json").write_text(json.dumps({"model_type": "qwen3_5", "text_config": {"hidden_size": 2048, "num_hidden_layers": 24}}), encoding="utf-8")
+            (root / "tokenizer.json").write_text("{}", encoding="utf-8")
+            self.assertTrue(inspect_checkpoint(root).passed)
+
     def test_35b_architecture_is_rejected_for_2b_backend(self):
         with TemporaryDirectory() as directory:
             root = Path(directory)

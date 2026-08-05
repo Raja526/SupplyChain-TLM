@@ -33,9 +33,10 @@ def inspect_checkpoint(path: str | Path, expected_hidden_size: int = 2048, expec
         config = json.loads(config_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as error:
         return CheckpointReport(str(root), False, (f"invalid config.json: {error}",))
-    model_type = str(config.get("model_type", config.get("architectures", [""])[0] if config.get("architectures") else ""))
-    hidden_size = int(config.get("hidden_size", 0))
-    layers = int(config.get("num_hidden_layers", 0))
+    text_config = config.get("text_config", config)
+    model_type = str(config.get("model_type", text_config.get("model_type", config.get("architectures", [""])[0] if config.get("architectures") else "")))
+    hidden_size = int(text_config.get("hidden_size", 0))
+    layers = int(text_config.get("num_hidden_layers", 0))
     if hidden_size != expected_hidden_size:
         errors.append(f"hidden_size={hidden_size}, expected {expected_hidden_size}")
     if layers != expected_layers:

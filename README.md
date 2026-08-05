@@ -160,7 +160,8 @@ Use a local CPU executable instead of the baseline backend:
 ```bash
 python3 -m src.supplychain_tlm.answer_cli \
   examples/shipment_bundle.json "Can this shipment be released?" \
-  --command /path/to/cpu-inference-binary
+  --command /path/to/cpu-inference-binary \
+  --timeout 180
 ```
 
 For the existing Qwen C chat binary, use the included wrapper:

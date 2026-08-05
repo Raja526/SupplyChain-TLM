@@ -27,7 +27,7 @@ class AnswerCLITests(unittest.TestCase):
         output = StringIO()
         command = ["/bin/cat"]
         with redirect_stdout(output):
-            self.assertEqual(main(["examples/shipment_bundle.json", "status", "--command", *command]), 0)
+            self.assertEqual(main(["examples/shipment_bundle.json", "status", "--command", *command, "--timeout", "5"]), 0)
         self.assertIn("answer: You are SupplyChain-TLM", output.getvalue())
 
 
