@@ -145,6 +145,8 @@ This prints the answer, confidence, references, and suggested action. It never e
 
 `format_prompt()` converts the same context into a bounded prompt contract for a future CPU model backend. The safety boundary is included in the prompt, but enforcement remains in deterministic code.
 
+`ProcessTLMBackend` connects that prompt to a local executable through stdin and returns text only. It supports timeouts and nonzero-exit handling; it does not pass tool capabilities to the model process.
+
 ## Training and evaluation tasks
 
 `examples/training_tasks.jsonl` is the initial versioned task format for future compact-model training and evaluation. Each example contains a domain, instruction, structured context, target response, and safety label such as `request_review`, `request_approval`, or `refuse_action`.

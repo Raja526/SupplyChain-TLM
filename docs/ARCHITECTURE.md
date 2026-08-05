@@ -68,6 +68,8 @@ The context has a stable JSON representation for prompt construction, evaluation
 
 The TLM backend receives `DecisionContext` and returns an answer, confidence, references, and a suggested action. Suggested actions remain proposals; only the planner, approval gate, and tool policy can authorize side effects.
 
+The process backend is intentionally narrow: prompt in, text out, timeout and nonzero-exit handling. Tool execution remains in the parent process behind policy and approval gates.
+
 Prompt construction is deterministic and inspectable. A model may produce language, but it cannot grant itself approval or directly invoke tools.
 
 The review queue provides the human-in-the-loop path for uncertain extraction. A document should not be promoted to trusted structured data merely because an OCR or model component produced fields.
