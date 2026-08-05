@@ -23,6 +23,15 @@ def clean_model_output(output: str) -> str:
     return "\n".join(useful).strip()
 
 
+def safe_action_for(context: DecisionContext) -> str | None:
+    """Derive workflow metadata from deterministic state, never model text."""
+    if not context.validation_passed:
+        return "request_document_review"
+    if "release" in context.request.lower() or "clearance" in context.request.lower():
+        return "request_approval"
+    return None
+
+
 @dataclass(frozen=True)
 class ProcessTLMBackend:
     command: tuple[str, ...]
@@ -39,4 +48,4 @@ class ProcessTLMBackend:
         if completed.returncode != 0:
             detail = completed.stderr.strip() or f"exit code {completed.returncode}"
             raise RuntimeError(f"local model failed: {detail}")
-        return TLMResponse(clean_model_output(completed.stdout), 0.0, context.references)
+        return TLMResponse(clean_model_output(completed.stdout), 0.0, context.references, safe_action_for(context))

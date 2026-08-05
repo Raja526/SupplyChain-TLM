@@ -216,6 +216,8 @@ The split is deterministic and keeps examples disjoint, which makes later CPU-mo
 
 `ProcessTLMBackend` connects that prompt to a local executable through stdin and returns text only. It supports timeouts, nonzero-exit handling, and removes known Qwen inference telemetry lines from stdout; it does not pass tool capabilities to the model process.
 
+Suggested workflow metadata from a local model is derived from deterministic validation in the parent process. Model text cannot authorize release or override a review requirement.
+
 For routine release/validation decisions where deterministic checks are sufficient, use the immediate fast path and avoid model prefill entirely:
 
 ```bash
