@@ -231,7 +231,7 @@ python3 -m src.supplychain_tlm.train \
   /path/to/local-small-causal-model \
   examples/training_tasks.jsonl \
   /tmp/supplychain-tlm-checkpoint \
-  --epochs 1
+  --epochs 1 --device cpu
 ```
 
 Start with a small model and evaluate its safety-label confusion before attempting a larger checkpoint or CPU fine-tuning run.
