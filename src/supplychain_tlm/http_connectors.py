@@ -15,6 +15,14 @@ class JSONHTTPClient:
     token: str
     timeout_seconds: float = 30.0
 
+    def __post_init__(self) -> None:
+        if not self.token.strip():
+            raise ValueError("connector token cannot be empty")
+        if not self.base_url.startswith("https://") and not self.base_url.startswith(("http://localhost", "http://127.0.0.1", "http://[::1]")):
+            raise ValueError("connector base_url must use HTTPS except for localhost tests")
+        if self.timeout_seconds <= 0:
+            raise ValueError("connector timeout must be positive")
+
     def call(self, path: str, payload: dict[str, object]) -> str:
         url = urljoin(self.base_url.rstrip("/") + "/", path.lstrip("/"))
         body = json.dumps(payload, sort_keys=True).encode("utf-8")

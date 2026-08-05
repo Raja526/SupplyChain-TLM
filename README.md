@@ -313,6 +313,7 @@ The same harness can later compare a real CPU inference backend by passing it to
 `src/supplychain_tlm/connectors.py` separates SAP, Oracle, and WMS capability protocols from vendor SDKs. `DryRunEnterpriseConnectors` is the local test implementation; production adapters should keep credentials and transport logic outside the planner and model.
 
 `src/supplychain_tlm/http_connectors.py` provides authenticated JSON-over-HTTPS transport adapters for those protocols. Configure real base URLs and secret management per vendor; tests never contact external systems.
+Remote connector URLs must use HTTPS and non-empty bearer tokens; plain HTTP is accepted only for localhost test endpoints.
 
 The workflow CLI now uses this dry-run connector. Running it without `--approve-as` is review-only; execution requires the explicit `procurement_manager` approval role and records the action in the audit log.
 

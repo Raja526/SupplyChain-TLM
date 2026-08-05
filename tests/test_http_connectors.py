@@ -31,6 +31,12 @@ class HTTPConnectorTests(unittest.TestCase):
             self.assertEqual(WMSHTTPConnector(client).reserve_inventory("S-1", "SKU-1", 2), "ok")
         self.assertIn("/wms/reserve", open_url.call_args.args[0].full_url)
 
+    def test_connector_rejects_empty_token_and_non_tls_remote_url(self):
+        with self.assertRaisesRegex(ValueError, "token"):
+            JSONHTTPClient("https://sap.example.test", "")
+        with self.assertRaisesRegex(ValueError, "HTTPS"):
+            JSONHTTPClient("http://sap.example.test", "secret")
+
 
 if __name__ == "__main__":
     unittest.main()
