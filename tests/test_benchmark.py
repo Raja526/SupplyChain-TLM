@@ -1,5 +1,8 @@
 import unittest
 import sys
+import json
+from contextlib import redirect_stdout
+from io import StringIO
 
 from src.supplychain_tlm.benchmark import benchmark
 from src.supplychain_tlm.dataset import load_jsonl
@@ -19,6 +22,13 @@ class BenchmarkTests(unittest.TestCase):
         result = benchmark(contexts, ProcessTLMBackend((sys.executable, "-c", "import sys; print('ok')")))
         self.assertEqual(result.samples, 3)
         self.assertGreaterEqual(result.samples_per_second, 0.0)
+
+    def test_benchmark_cli_json_output(self):
+        from src.supplychain_tlm.benchmark import main
+        output = StringIO()
+        with redirect_stdout(output):
+            self.assertEqual(main(["examples/training_tasks.jsonl", "--json"]), 0)
+        self.assertEqual(json.loads(output.getvalue())["samples"], 3)
 
 
 if __name__ == "__main__":

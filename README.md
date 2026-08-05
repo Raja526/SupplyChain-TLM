@@ -304,6 +304,8 @@ python3 -m src.supplychain_tlm.benchmark \
   --command scripts/qwen_chat_backend.sh --timeout 180
 ```
 
+Add `--json` to save benchmark results for reproducible hardware comparisons.
+
 The same harness can later compare a real CPU inference backend by passing it to the benchmark function.
 
 `build_release_plan()` exposes the autonomous workflow as explicit states: validation, retrieval, human review, approval, and execution. This is a plan only; it does not perform the final action.

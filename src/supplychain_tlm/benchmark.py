@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import argparse
+import json
 import time
 
 from .context import DecisionContext
@@ -40,14 +41,18 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("dataset")
     parser.add_argument("--command", nargs="+", help="local backend executable and arguments")
     parser.add_argument("--timeout", type=float, default=180.0)
+    parser.add_argument("--json", action="store_true", dest="as_json")
     args = parser.parse_args(argv)
     contexts = tuple(context_from_example(example) for example in load_jsonl(args.dataset))
     backend = ProcessTLMBackend(tuple(args.command), timeout_seconds=args.timeout) if args.command else None
     result = benchmark(contexts, backend)
-    print(f"samples: {result.samples}")
-    print(f"elapsed_seconds: {result.elapsed_seconds:.6f}")
-    print(f"average_ms: {result.average_milliseconds:.3f}")
-    print(f"samples_per_second: {result.samples_per_second:.3f}")
+    if args.as_json:
+        print(json.dumps({"samples": result.samples, "elapsed_seconds": result.elapsed_seconds, "average_ms": result.average_milliseconds, "samples_per_second": result.samples_per_second}, sort_keys=True))
+    else:
+        print(f"samples: {result.samples}")
+        print(f"elapsed_seconds: {result.elapsed_seconds:.6f}")
+        print(f"average_ms: {result.average_milliseconds:.3f}")
+        print(f"samples_per_second: {result.samples_per_second:.3f}")
     return 0
 
 
