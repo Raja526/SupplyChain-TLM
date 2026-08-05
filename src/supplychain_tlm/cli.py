@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 
 from .ingest import load_bundle
 from .erp import DryRunERPClient, ERPToolAdapter
@@ -15,6 +16,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("bundle", help="path to an extracted shipment JSON bundle")
     parser.add_argument("--approve-as", help="explicit approver role; omit for review-only mode")
     parser.add_argument("--audit", default="audit/workflow.jsonl", help="append-only JSONL audit path")
+    parser.add_argument("--json", action="store_true", dest="as_json", help="emit one machine-readable JSON response")
     args = parser.parse_args(argv)
 
     bundle = load_bundle(args.bundle)
@@ -26,6 +28,15 @@ def main(argv: list[str] | None = None) -> int:
     if not args.approve_as:
         result = workflow.prepare(bundle)
         proposal = result.plan.proposals[0]
+        if args.as_json:
+            print(json.dumps({
+                "mode": "review_only",
+                "validation_passed": result.plan.validation_passed,
+                "proposal": proposal.__dict__,
+                "references": list(result.plan.references),
+                "audit": args.audit,
+            }, sort_keys=True))
+            return 0 if result.plan.validation_passed else 1
         print(f"validation_passed: {result.plan.validation_passed}")
         print(f"proposal: {proposal.action} status={proposal.status}")
         print(f"reason: {proposal.reason}")
@@ -34,8 +45,25 @@ def main(argv: list[str] | None = None) -> int:
 
     result = workflow.approve_and_execute(bundle, args.approve_as)
     if result.tool_result is None:
+        if args.as_json:
+            print(json.dumps({
+                "mode": "blocked",
+                "validation_passed": result.plan.validation_passed,
+                "reason": result.plan.proposals[0].reason,
+                "audit": args.audit,
+            }, sort_keys=True))
+            return 1
         print(f"blocked: {result.plan.proposals[0].reason}")
         return 1
+    if args.as_json:
+        print(json.dumps({
+            "mode": "approved_dry_run",
+            "validation_passed": result.plan.validation_passed,
+            "approved_by": result.approval.approver,
+            "tool_result": result.tool_result,
+            "audit": args.audit,
+        }, sort_keys=True))
+        return 0
     print(f"approved_by: {result.approval.approver}")
     print(f"tool_result: {result.tool_result}")
     print(f"audit: {args.audit}")
