@@ -379,6 +379,13 @@ python3 -m src.supplychain_tlm.dataset_report \
   examples/training_tasks_extended.jsonl --json
 ```
 
+Materialize the deterministic, disjoint files before training:
+
+```bash
+python3 -m src.supplychain_tlm.split_cli \
+  examples/training_tasks_extended.jsonl data/supplychain-splits
+```
+
 Train a local Transformers checkpoint on answer tokens (the default):
 
 ```bash
