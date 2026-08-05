@@ -73,6 +73,18 @@ class ServiceTests(unittest.TestCase):
             thread.join(timeout=5)
             server.server_close()
 
+    def test_health_endpoint(self):
+        server = ThreadingHTTPServer(("127.0.0.1", 0), AgentRequestHandler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            with urlopen(f"http://127.0.0.1:{server.server_port}/healthz", timeout=5) as response:
+                self.assertEqual(json.loads(response.read())["status"], "ok")
+        finally:
+            server.shutdown()
+            thread.join(timeout=5)
+            server.server_close()
+
 
 if __name__ == "__main__":
     unittest.main()
