@@ -53,6 +53,12 @@ python3 -m src.supplychain_tlm.ingest examples/shipment_bundle.json
 
 The JSON loader performs schema conversion only. It does not trust the extracted data; the resulting typed documents still pass through deterministic validation.
 
+## Extraction and planning boundaries
+
+`src/supplychain_tlm/extraction.py` defines an OCR provider interface and a plain-text development provider. An OCR engine can be integrated later without changing the document schemas.
+
+`src/supplychain_tlm/planner.py` creates approval-gated action proposals. It never calls an ERP, sends email, or mutates external state. Invalid document bundles produce a `blocked` proposal.
+
 ## Roadmap
 
 1. Document schemas and deterministic validation.

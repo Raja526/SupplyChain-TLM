@@ -42,6 +42,8 @@ No external action should occur solely because a model generated text. The minim
 extract → validate → propose → approval/policy check → execute → audit
 ```
 
+The current planner implements only the `propose` stage. Enterprise connectors and execution are intentionally absent until approval, policy, idempotency, and audit contracts are defined.
+
 ## Example decision
 
 “Can this shipment be released?” may require comparing the purchase order, invoice, packing list, bill of lading, HS code, Incoterm, insurance, and clearance status. This is why a shared model plus cross-document context is preferable to one model per document type.
