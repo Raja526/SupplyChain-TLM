@@ -22,6 +22,10 @@ class DatasetTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "duplicate example_id"):
                 load_jsonl(stream.name)
 
+    def test_empty_training_fields_are_rejected(self):
+        with self.assertRaisesRegex(ValueError, "cannot be empty"):
+            example_from_dict({"example_id": "x", "domain": "shipping", "instruction": " ", "context": {}, "target": "x", "safety_label": "answer"})
+
 
 if __name__ == "__main__":
     unittest.main()

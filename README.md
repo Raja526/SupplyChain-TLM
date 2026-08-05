@@ -213,6 +213,7 @@ split = split_examples(load_jsonl("examples/training_tasks.jsonl"))
 The split is deterministic and keeps examples disjoint, which makes later CPU-model evaluation repeatable.
 
 JSONL loading rejects duplicate `example_id` values so the same task cannot silently leak across training and evaluation splits.
+It also rejects empty task metadata, instructions, or targets before they reach a model-training pipeline.
 
 `format_prompt()` converts the same context into a compact prompt contract for a CPU model backend. The safety boundary is included in the prompt, but enforcement remains in deterministic code. The prompt intentionally includes only routed domain facts, validation status, and reference IDs to reduce CPU prefill work.
 

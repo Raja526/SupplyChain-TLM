@@ -27,7 +27,11 @@ def example_from_dict(data: dict[str, Any]) -> TrainingExample:
         raise ValueError(f"unsupported safety label: {data['safety_label']}")
     if not isinstance(data["context"], dict):
         raise ValueError("training example context must be an object")
-    return TrainingExample(str(data["example_id"]), str(data["domain"]), str(data["instruction"]), data["context"], str(data["target"]), str(data["safety_label"]))
+    values = {key: str(data[key]).strip() for key in ("example_id", "domain", "instruction", "target")}
+    empty = [key for key, value in values.items() if not value]
+    if empty:
+        raise ValueError(f"training example fields cannot be empty: {', '.join(empty)}")
+    return TrainingExample(values["example_id"], values["domain"], values["instruction"], data["context"], values["target"], str(data["safety_label"]))
 
 
 def load_jsonl(path: str | Path) -> tuple[TrainingExample, ...]:
