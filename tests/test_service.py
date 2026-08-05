@@ -85,6 +85,23 @@ class ServiceTests(unittest.TestCase):
             thread.join(timeout=5)
             server.server_close()
 
+    def test_metrics_endpoint_reports_requests(self):
+        server = ThreadingHTTPServer(("127.0.0.1", 0), AgentRequestHandler)
+        server.service_metrics = __import__("src.supplychain_tlm.service", fromlist=["ServiceMetrics"]).ServiceMetrics()
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            with urlopen(f"http://127.0.0.1:{server.server_port}/healthz", timeout=5):
+                pass
+            with urlopen(f"http://127.0.0.1:{server.server_port}/metrics", timeout=5) as response:
+                metrics = response.read().decode()
+            self.assertIn("supplychain_requests_total 2", metrics)
+            self.assertIn("supplychain_responses_2xx_total 2", metrics)
+        finally:
+            server.shutdown()
+            thread.join(timeout=5)
+            server.server_close()
+
 
 if __name__ == "__main__":
     unittest.main()

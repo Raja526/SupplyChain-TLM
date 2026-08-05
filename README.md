@@ -310,6 +310,7 @@ python3 -m src.supplychain_tlm.service --host 127.0.0.1 --port 8080
 Send `POST /v1/request` with a JSON body such as `{"operation":"answer","bundle":"examples/shipment_bundle.json","request":"Can this shipment be released?"}`.
 
 Use `GET /healthz` for a lightweight readiness check; it does not load a model or execute an ERP operation.
+Use `GET /metrics` for Prometheus-compatible request, response, and uptime counters.
 
 Remote binding is rejected by default; use `--allow-remote --token "$SUPPLYCHAIN_SERVICE_TOKEN"` only behind an authenticated network boundary. A bearer token is mandatory for remote binding.
 
