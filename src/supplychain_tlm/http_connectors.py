@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import json
+import time
 from urllib.error import HTTPError, URLError
 from urllib.parse import urljoin
 from urllib.request import Request, urlopen
@@ -14,6 +15,8 @@ class JSONHTTPClient:
     base_url: str
     token: str
     timeout_seconds: float = 30.0
+    max_attempts: int = 1
+    retry_backoff_seconds: float = 0.2
 
     def __post_init__(self) -> None:
         if not self.token.strip():
@@ -22,18 +25,28 @@ class JSONHTTPClient:
             raise ValueError("connector base_url must use HTTPS except for localhost tests")
         if self.timeout_seconds <= 0:
             raise ValueError("connector timeout must be positive")
+        if self.max_attempts < 1 or self.retry_backoff_seconds < 0:
+            raise ValueError("connector retry settings are invalid")
 
-    def call(self, path: str, payload: dict[str, object]) -> str:
+    def call(self, path: str, payload: dict[str, object], idempotency_key: str | None = None) -> str:
         url = urljoin(self.base_url.rstrip("/") + "/", path.lstrip("/"))
         body = json.dumps(payload, sort_keys=True).encode("utf-8")
-        request = Request(url, data=body, method="POST", headers={"Authorization": f"Bearer {self.token}", "Content-Type": "application/json"})
-        try:
-            with urlopen(request, timeout=self.timeout_seconds) as response:
-                data = json.loads(response.read().decode("utf-8"))
-        except HTTPError as error:
-            raise RuntimeError(f"connector HTTP error: {error.code}") from error
-        except URLError as error:
-            raise RuntimeError(f"connector network error: {error.reason}") from error
+        headers = {"Authorization": f"Bearer {self.token}", "Content-Type": "application/json"}
+        if idempotency_key:
+            headers["Idempotency-Key"] = idempotency_key
+        for attempt in range(self.max_attempts):
+            request = Request(url, data=body, method="POST", headers=headers)
+            try:
+                with urlopen(request, timeout=self.timeout_seconds) as response:
+                    data = json.loads(response.read().decode("utf-8"))
+                break
+            except HTTPError as error:
+                if error.code < 500 or attempt + 1 == self.max_attempts:
+                    raise RuntimeError(f"connector HTTP error: {error.code}") from error
+            except URLError as error:
+                if attempt + 1 == self.max_attempts:
+                    raise RuntimeError(f"connector network error: {error.reason}") from error
+            time.sleep(self.retry_backoff_seconds * (attempt + 1))
         if not isinstance(data, dict) or "result" not in data:
             raise RuntimeError("connector response must contain a result")
         return str(data["result"])

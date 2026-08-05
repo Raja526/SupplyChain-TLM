@@ -37,6 +37,12 @@ class HTTPConnectorTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "HTTPS"):
             JSONHTTPClient("http://sap.example.test", "secret")
 
+    def test_idempotency_header_is_forwarded(self):
+        client = JSONHTTPClient("https://sap.example.test", "secret")
+        with patch("src.supplychain_tlm.http_connectors.urlopen", return_value=FakeResponse()) as open_url:
+            client.call("sap/release", {"shipment_id": "S-1"}, idempotency_key="release:S-1")
+        self.assertEqual(open_url.call_args.args[0].get_header("Idempotency-key"), "release:S-1")
+
 
 if __name__ == "__main__":
     unittest.main()
