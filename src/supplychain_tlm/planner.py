@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from .ingest import ShipmentBundle
+from .knowledge import DEFAULT_KNOWLEDGE, KnowledgeIndex
 from .validation import validate_shipment_bundle
 
 
@@ -22,10 +23,12 @@ class Plan:
     goal: str
     proposals: tuple[ActionProposal, ...]
     validation_passed: bool
+    references: tuple[str, ...] = ()
 
 
-def propose_shipment_release(bundle: ShipmentBundle) -> Plan:
+def propose_shipment_release(bundle: ShipmentBundle, knowledge: KnowledgeIndex = DEFAULT_KNOWLEDGE) -> Plan:
     """Propose a release workflow; never calls an ERP or changes state."""
+    references = tuple(result.document.document_id for result in knowledge.search("shipment release invoice purchase order customs"))
     report = validate_shipment_bundle(
         bundle.invoice,
         bundle.purchase_order,
@@ -37,11 +40,13 @@ def propose_shipment_release(bundle: ShipmentBundle) -> Plan:
         return Plan(
             goal="release shipment",
             validation_passed=False,
+            references=references,
             proposals=(ActionProposal("release_shipment", "blocked", f"Validation failed: {codes}", "none"),),
         )
     return Plan(
         goal="release shipment",
         validation_passed=True,
+        references=references,
         proposals=(
             ActionProposal(
                 "release_shipment",

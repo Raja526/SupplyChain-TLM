@@ -113,6 +113,8 @@ results = DEFAULT_KNOWLEDGE.search("Which HS code and tariff checks are needed?"
 
 This is a small lexical baseline. A production RAG layer should add versioned sources, embeddings or hybrid search, access control, citations, and freshness policies.
 
+The release planner now attaches retrieved reference IDs to each `Plan`. These references are advisory evidence; validation remains the hard gate and the planner does not treat retrieved text as authorization.
+
 ## Roadmap
 
 1. Document schemas and deterministic validation.

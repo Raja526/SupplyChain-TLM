@@ -58,6 +58,8 @@ The current extractor exposes field confidence and a `needs_human_review` gate. 
 
 The local knowledge index is context retrieval only. It does not make a compliance decision; retrieved references must be shown with their source and evaluated against current company policy and authoritative regulations.
 
+Planner outputs carry reference IDs so a reviewer can inspect the guidance used during proposal generation. References never override deterministic validation or approval policy.
+
 ## Example decision
 
 “Can this shipment be released?” may require comparing the purchase order, invoice, packing list, bill of lading, HS code, Incoterm, insurance, and clearance status. This is why a shared model plus cross-document context is preferable to one model per document type.

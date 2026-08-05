@@ -19,6 +19,7 @@ class PlannerTests(unittest.TestCase):
         self.assertTrue(plan.validation_passed)
         self.assertEqual(plan.proposals[0].status, "proposed")
         self.assertEqual(plan.proposals[0].required_approval, "procurement_manager")
+        self.assertIn("shipment-release", plan.references)
 
     def test_invalid_bundle_is_blocked(self):
         plan = propose_shipment_release(bundle(total=11))
