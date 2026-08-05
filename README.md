@@ -188,6 +188,17 @@ python3 -m src.supplychain_tlm.checkpoint /path/to/Qwen3.5-2B
 
 The preflight rejects missing files and architecture mismatches, including accidentally pointing the 2B backend at the 35B checkpoint.
 
+Training examples can be split reproducibly by example ID:
+
+```python
+from src.supplychain_tlm.dataset import load_jsonl
+from src.supplychain_tlm.split import split_examples
+
+split = split_examples(load_jsonl("examples/training_tasks.jsonl"))
+```
+
+The split is deterministic and keeps examples disjoint, which makes later CPU-model evaluation repeatable.
+
 `format_prompt()` converts the same context into a bounded prompt contract for a future CPU model backend. The safety boundary is included in the prompt, but enforcement remains in deterministic code.
 
 `ProcessTLMBackend` connects that prompt to a local executable through stdin and returns text only. It supports timeouts and nonzero-exit handling; it does not pass tool capabilities to the model process.
