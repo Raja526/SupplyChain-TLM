@@ -102,6 +102,17 @@ This baseline uses deterministic patterns. It is not a replacement for layout-aw
 
 Each extracted field carries a confidence value. Unknown document types, warnings, or low-confidence fields set `needs_human_review=True` and should stop automatic progression.
 
+## Local knowledge retrieval
+
+The initial `KnowledgeIndex` provides deterministic local retrieval for SupplyChain-TLM development:
+
+```python
+from src.supplychain_tlm.knowledge import DEFAULT_KNOWLEDGE
+results = DEFAULT_KNOWLEDGE.search("Which HS code and tariff checks are needed?")
+```
+
+This is a small lexical baseline. A production RAG layer should add versioned sources, embeddings or hybrid search, access control, citations, and freshness policies.
+
 ## Roadmap
 
 1. Document schemas and deterministic validation.
