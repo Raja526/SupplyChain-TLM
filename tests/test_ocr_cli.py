@@ -1,4 +1,5 @@
 import unittest
+import json
 from contextlib import redirect_stdout
 from io import StringIO
 from unittest.mock import patch
@@ -16,6 +17,15 @@ class OCRCLITests(unittest.TestCase):
                 self.assertEqual(main(["invoice.png"]), 0)
         self.assertIn("document_type: invoice", output.getvalue())
         self.assertIn("needs_human_review: False", output.getvalue())
+
+    def test_ocr_cli_json_includes_quality(self):
+        fake = OCRDocument("invoice.png", (OCRPage(1, "Invoice # INV-1"),))
+        output = StringIO()
+        with patch("src.supplychain_tlm.ocr_cli.TesseractProvider.extract", return_value=fake):
+            with redirect_stdout(output):
+                self.assertEqual(main(["invoice.png", "--json"]), 0)
+        payload = json.loads(output.getvalue())
+        self.assertEqual(payload["quality"]["pages"], 1)
 
 
 if __name__ == "__main__":
