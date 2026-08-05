@@ -54,6 +54,8 @@ Audit events can be persisted as JSON Lines. This is a local development format;
 
 The text extractor is only a first-pass adapter after OCR. Extracted values must retain source-page provenance and confidence before being admitted into a production validation workflow.
 
+The current extractor exposes field confidence and a `needs_human_review` gate. A future document-review service should preserve the original OCR span, page, bounding box, extractor version, and reviewer decision.
+
 ## Example decision
 
 “Can this shipment be released?” may require comparing the purchase order, invoice, packing list, bill of lading, HS code, Incoterm, insurance, and clearance status. This is why a shared model plus cross-document context is preferable to one model per document type.

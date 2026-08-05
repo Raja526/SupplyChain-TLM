@@ -15,7 +15,12 @@ class ExtractionResult:
     document_type: str
     confidence: float
     fields: dict[str, str]
+    field_confidence: dict[str, float]
     warnings: tuple[str, ...] = ()
+
+    @property
+    def needs_human_review(self) -> bool:
+        return self.document_type == "unknown" or bool(self.warnings) or any(value < 0.8 for value in self.field_confidence.values())
 
 
 _TYPE_TERMS = {
@@ -43,6 +48,7 @@ def _first(pattern: str, text: str) -> str | None:
 def extract_fields(text: str, document_type: str | None = None) -> ExtractionResult:
     kind, confidence = classify_document(text) if document_type is None else (document_type, 1.0)
     fields: dict[str, str] = {}
+    field_confidence: dict[str, float] = {}
     patterns = {
         "document_id": r"(?:invoice|document|bol|b/l)\s*(?:number|no\.?|#|id)?\s*[:#-]?\s*([A-Z0-9][A-Z0-9-]+)",
         "po_number": r"(?:purchase order|po)\s*(?:number|no\.?|#)?\s*[:#-]?\s*(PO[-\s]?[A-Z0-9-]+)",
@@ -55,7 +61,8 @@ def extract_fields(text: str, document_type: str | None = None) -> ExtractionRes
         value = _first(pattern, text)
         if value:
             fields[name] = value.replace(",", "")
+            field_confidence[name] = 0.9
     warnings = () if fields else ("no supported fields found",)
     if kind == "unknown":
         warnings += ("document type could not be classified",)
-    return ExtractionResult(kind, confidence, fields, warnings)
+    return ExtractionResult(kind, confidence, fields, field_confidence, warnings)

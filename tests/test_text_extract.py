@@ -12,11 +12,13 @@ class TextExtractionTests(unittest.TestCase):
         self.assertEqual(result.document_type, "bill_of_lading")
         self.assertEqual(result.fields["shipment_id"], "SHIP-100")
         self.assertEqual(result.fields["container_number"], "MSCU1234567")
+        self.assertFalse(result.needs_human_review)
 
     def test_unknown_text_returns_warning(self):
         result = extract_fields("random unrelated text")
         self.assertEqual(result.document_type, "unknown")
         self.assertIn("document type could not be classified", result.warnings)
+        self.assertTrue(result.needs_human_review)
 
 
 if __name__ == "__main__":

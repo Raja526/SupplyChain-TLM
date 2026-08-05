@@ -100,6 +100,8 @@ print(result.document_type, result.fields)
 
 This baseline uses deterministic patterns. It is not a replacement for layout-aware OCR, table extraction, confidence calibration, or human review.
 
+Each extracted field carries a confidence value. Unknown document types, warnings, or low-confidence fields set `needs_human_review=True` and should stop automatic progression.
+
 ## Roadmap
 
 1. Document schemas and deterministic validation.
