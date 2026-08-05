@@ -215,6 +215,15 @@ The split is deterministic and keeps examples disjoint, which makes later CPU-mo
 JSONL loading rejects duplicate `example_id` values so the same task cannot silently leak across training and evaluation splits.
 It also rejects empty task metadata, instructions, or targets before they reach a model-training pipeline.
 
+Export validated tasks to chat fine-tuning JSONL without adding a training-framework dependency:
+
+```bash
+python3 -m src.supplychain_tlm.training_export \
+  examples/training_tasks.jsonl /tmp/supplychain-chat-train.jsonl
+```
+
+Each record contains system/user/assistant messages plus the domain and safety label as metadata.
+
 `format_prompt()` converts the same context into a compact prompt contract for a CPU model backend. The safety boundary is included in the prompt, but enforcement remains in deterministic code. The prompt intentionally includes only routed domain facts, validation status, and reference IDs to reduce CPU prefill work.
 
 `ProcessTLMBackend` connects that prompt to a local executable through stdin and returns text only. It supports timeouts, nonzero-exit handling, and removes known Qwen inference telemetry lines from stdout; it does not pass tool capabilities to the model process.
