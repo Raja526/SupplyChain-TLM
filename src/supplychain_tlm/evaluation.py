@@ -81,6 +81,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("dataset")
     parser.add_argument("--command", nargs="+", help="local backend executable and arguments")
     parser.add_argument("--timeout", type=float, default=180.0)
+    parser.add_argument("--min-content-score", type=float, default=None, help="fail if mean token-overlap content score is below this value")
     parser.add_argument("--json", action="store_true", dest="as_json")
     args = parser.parse_args(argv)
     backend = ProcessTLMBackend(tuple(args.command), timeout_seconds=args.timeout) if args.command else None
@@ -94,6 +95,11 @@ def main(argv: list[str] | None = None) -> int:
             print(f"confusion expected={expected} actual={actual} count={count}")
         for failure in result.failures:
             print(f"FAIL: {failure}")
+    if args.min_content_score is not None and not 0.0 <= args.min_content_score <= 1.0:
+        parser.error("--min-content-score must be between 0 and 1")
+    if args.min_content_score is not None and result.content_score < args.min_content_score:
+        print(f"FAIL: content_score={result.content_score:.2%} below minimum={args.min_content_score:.2%}")
+        return 1
     return 0 if not result.failures else 1
 
 

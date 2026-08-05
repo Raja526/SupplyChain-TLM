@@ -35,6 +35,10 @@ class EvaluationTests(unittest.TestCase):
         from src.supplychain_tlm.evaluation import main
         self.assertEqual(main(["examples/training_tasks.jsonl", "--command", "/bin/cat"]), 0)
 
+    def test_content_quality_gate_can_fail(self):
+        from src.supplychain_tlm.evaluation import main
+        self.assertEqual(main(["examples/training_tasks.jsonl", "--min-content-score", "0.99"]), 1)
+
 
 if __name__ == "__main__":
     unittest.main()
