@@ -32,11 +32,16 @@ def example_from_dict(data: dict[str, Any]) -> TrainingExample:
 
 def load_jsonl(path: str | Path) -> tuple[TrainingExample, ...]:
     examples = []
+    seen_ids: set[str] = set()
     for line_number, line in enumerate(Path(path).read_text(encoding="utf-8").splitlines(), 1):
         if not line.strip():
             continue
         try:
-            examples.append(example_from_dict(json.loads(line)))
+            example = example_from_dict(json.loads(line))
+            if example.example_id in seen_ids:
+                raise ValueError(f"invalid training example at line {line_number}: duplicate example_id: {example.example_id}")
+            seen_ids.add(example.example_id)
+            examples.append(example)
         except (json.JSONDecodeError, ValueError) as error:
             raise ValueError(f"invalid training example at line {line_number}: {error}") from error
     return tuple(examples)
