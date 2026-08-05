@@ -68,6 +68,8 @@ The context has a stable JSON representation for prompt construction, evaluation
 
 The TLM backend receives `DecisionContext` and returns an answer, confidence, references, and a suggested action. Suggested actions remain proposals; only the planner, approval gate, and tool policy can authorize side effects.
 
+The review queue provides the human-in-the-loop path for uncertain extraction. A document should not be promoted to trusted structured data merely because an OCR or model component produced fields.
+
 ## Example decision
 
 “Can this shipment be released?” may require comparing the purchase order, invoice, packing list, bill of lading, HS code, Incoterm, insurance, and clearance status. This is why a shared model plus cross-document context is preferable to one model per document type.
