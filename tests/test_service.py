@@ -6,7 +6,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from urllib.request import Request, urlopen
 
-from src.supplychain_tlm.service import AgentRequestHandler, answer_payload, handle_json, release_payload
+from src.supplychain_tlm.service import AgentRequestHandler, answer_payload, handle_json, release_payload, serve
 
 
 class ServiceTests(unittest.TestCase):
@@ -44,6 +44,10 @@ class ServiceTests(unittest.TestCase):
             server.shutdown()
             thread.join(timeout=5)
             server.server_close()
+
+    def test_remote_binding_requires_explicit_opt_in(self):
+        with self.assertRaisesRegex(ValueError, "remote binding"):
+            serve("0.0.0.0", 0)
 
 
 if __name__ == "__main__":

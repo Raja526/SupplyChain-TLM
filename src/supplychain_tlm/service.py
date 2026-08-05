@@ -6,6 +6,7 @@ from dataclasses import asdict
 import argparse
 import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+import ipaddress
 from typing import Any
 
 from .erp import DryRunERPClient, ERPToolAdapter
@@ -81,8 +82,15 @@ class AgentRequestHandler(BaseHTTPRequestHandler):
         return
 
 
-def serve(host: str = "127.0.0.1", port: int = 8080) -> None:
+def serve(host: str = "127.0.0.1", port: int = 8080, *, allow_remote: bool = False) -> None:
     """Serve the restricted JSON endpoint; localhost is the safe default."""
+    if not allow_remote and host not in {"localhost", "127.0.0.1", "::1"}:
+        try:
+            is_loopback = ipaddress.ip_address(host).is_loopback
+        except ValueError:
+            is_loopback = False
+        if not is_loopback:
+            raise ValueError("remote binding requires allow_remote=True")
     server = ThreadingHTTPServer((host, port), AgentRequestHandler)
     print(f"supplychain service listening on http://{host}:{port}/v1/request")
     try:
@@ -95,8 +103,9 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Run the local SupplyChain-TLM JSON service")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8080)
+    parser.add_argument("--allow-remote", action="store_true", help="allow binding beyond localhost")
     args = parser.parse_args(argv)
-    serve(args.host, args.port)
+    serve(args.host, args.port, allow_remote=args.allow_remote)
     return 0
 
 
