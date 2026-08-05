@@ -271,6 +271,8 @@ The workflow CLI now uses this dry-run connector. Running it without `--approve-
 
 Use `--json` on the workflow CLI for orchestration integrations. It emits a stable review-only or approved-dry-run record containing validation, proposal, result, and audit information.
 
+The review queue also accepts `--json` for automated enqueue, list, and resolve integrations.
+
 Completed tool-call idempotency is rehydrated from the append-only audit log, so restarting the process does not make an already executed ERP operation eligible for repetition.
 
 Approvals are also bound to the call's idempotency/proposal key; an approval for one proposal cannot authorize a different operation.
