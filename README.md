@@ -273,6 +273,8 @@ Use `--json` on the workflow CLI for orchestration integrations. It emits a stab
 
 The review queue also accepts `--json` for automated enqueue, list, and resolve integrations.
 
+`src/supplychain_tlm/service.py` provides a small embeddable JSON service boundary for deterministic answers and approval-gated dry-run releases. It accepts only the `answer` and `release` operations and never executes arbitrary commands supplied by a caller.
+
 Completed tool-call idempotency is rehydrated from the append-only audit log, so restarting the process does not make an already executed ERP operation eligible for repetition.
 
 Approvals are also bound to the call's idempotency/proposal key; an approval for one proposal cannot authorize a different operation.
