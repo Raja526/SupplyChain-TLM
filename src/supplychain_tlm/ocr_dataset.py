@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import argparse
 import json
 from pathlib import Path
 from typing import Any
@@ -61,3 +62,22 @@ def load_manifest(path: str | Path, *, root: str | Path | None = None) -> tuple[
     if not items:
         raise ValueError("OCR manifest is empty")
     return tuple(items)
+
+
+def manifest_stats(items: tuple[OCRDatasetItem, ...]) -> dict[str, object]:
+    splits = {split: sum(item.split == split for item in items) for split in sorted(SPLITS)}
+    document_types = {kind: sum(item.document_type == kind for item in items) for kind in sorted(DOCUMENT_TYPES)}
+    return {"total": len(items), "splits": splits, "document_types": document_types, "annotated_items": sum(bool(item.fields) for item in items)}
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Report OCR dataset manifest coverage")
+    parser.add_argument("manifest")
+    parser.add_argument("--root")
+    args = parser.parse_args(argv)
+    print(json.dumps(manifest_stats(load_manifest(args.manifest, root=args.root)), sort_keys=True))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

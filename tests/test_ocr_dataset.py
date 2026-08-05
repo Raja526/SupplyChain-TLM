@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from src.supplychain_tlm.ocr_dataset import load_manifest
+from src.supplychain_tlm.ocr_dataset import load_manifest, manifest_stats
 
 
 class OCRDatasetTests(unittest.TestCase):
@@ -15,6 +15,7 @@ class OCRDatasetTests(unittest.TestCase):
             manifest.write_text(json.dumps({"item_id": "i-1", "path": "invoice.txt", "document_type": "invoice", "split": "train", "fields": {"document_id": "INV-1"}}) + "\n", encoding="utf-8")
             items = load_manifest(manifest)
             self.assertEqual(items[0].document_type, "invoice")
+            self.assertEqual(manifest_stats(items)["annotated_items"], 1)
 
     def test_missing_document_is_rejected(self):
         with TemporaryDirectory() as directory:
