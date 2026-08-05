@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 
 from .context import build_decision_context
 from .ingest import load_bundle
@@ -18,6 +19,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--timeout", type=float, default=60.0, help="local backend timeout in seconds")
     parser.add_argument("--fast-path", action="store_true", help="use deterministic validation response without invoking the local model")
     parser.add_argument("--fallback-fast-path", action="store_true", help="fall back to deterministic validation if the local model fails or times out")
+    parser.add_argument("--json", action="store_true", dest="as_json", help="emit one machine-readable JSON response")
     args = parser.parse_args(argv)
     fast_path = args.fast_path or not args.command
     backend = RuleBasedSupplyChainTLM() if fast_path else ProcessTLMBackend(tuple(args.command), timeout_seconds=args.timeout)
@@ -30,11 +32,20 @@ def main(argv: list[str] | None = None) -> int:
             raise
         response = RuleBasedSupplyChainTLM().answer(context)
         mode = "deterministic_fallback"
-    print(f"mode: {mode}")
-    print(f"answer: {response.answer}")
-    print(f"confidence: {response.confidence:.2f}")
-    print(f"suggested_action: {response.suggested_action}")
-    print(f"references: {','.join(response.references) or 'none'}")
+    if args.as_json:
+        print(json.dumps({
+            "mode": mode,
+            "answer": response.answer,
+            "confidence": response.confidence,
+            "suggested_action": response.suggested_action,
+            "references": list(response.references),
+        }, sort_keys=True))
+    else:
+        print(f"mode: {mode}")
+        print(f"answer: {response.answer}")
+        print(f"confidence: {response.confidence:.2f}")
+        print(f"suggested_action: {response.suggested_action}")
+        print(f"references: {','.join(response.references) or 'none'}")
     return 0
 
 

@@ -228,6 +228,14 @@ python3 -m src.supplychain_tlm.answer_cli \
 
 Use the local Qwen backend when a natural-language explanation or broader reasoning is needed.
 
+Add `--json` when another service needs a stable machine-readable response:
+
+```bash
+python3 -m src.supplychain_tlm.answer_cli \
+  examples/shipment_bundle.json "Can this shipment be released?" \
+  --fast-path --json
+```
+
 For unattended CPU deployments, add `--fallback-fast-path` to return the deterministic validation decision if the model times out or fails:
 
 ```bash

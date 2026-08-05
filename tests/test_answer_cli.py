@@ -1,4 +1,5 @@
 import unittest
+import json
 from contextlib import redirect_stdout
 from dataclasses import replace
 from io import StringIO
@@ -43,6 +44,14 @@ class AnswerCLITests(unittest.TestCase):
             self.assertEqual(main(["examples/shipment_bundle.json", "Can this shipment be released?", "--command", "/bin/false", "--fallback-fast-path"]), 0)
         self.assertIn("mode: deterministic_fallback", output.getvalue())
         self.assertIn("suggested_action: request_approval", output.getvalue())
+
+    def test_json_output_is_machine_readable(self):
+        output = StringIO()
+        with redirect_stdout(output):
+            self.assertEqual(main(["examples/shipment_bundle.json", "Can this shipment be released?", "--fast-path", "--json"]), 0)
+        payload = json.loads(output.getvalue())
+        self.assertEqual(payload["mode"], "deterministic")
+        self.assertEqual(payload["suggested_action"], "request_approval")
 
 
 if __name__ == "__main__":
