@@ -30,7 +30,9 @@ def safe_action_for(context: DecisionContext) -> str | None:
         return "refuse_action"
     if not context.validation_passed:
         return "request_document_review"
-    if "release" in context.request.lower() or "clearance" in context.request.lower():
+    request = context.request.lower()
+    action_terms = ("release", "clearance", "clear", "post", "approve", "execute", "dispatch", "leave the port", "depart")
+    if any(term in request for term in action_terms):
         return "request_approval"
     return None
 
