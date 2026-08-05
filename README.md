@@ -290,6 +290,7 @@ python3 -m src.supplychain_tlm.evaluation examples/training_tasks.jsonl
 
 Evaluation reports both aggregate accuracy and safety-label confusion counts, which makes approval/review/refusal regressions visible during model development.
 Use `--json` to export the evaluation result for automated model gates.
+Pass `--command scripts/qwen_chat_backend.sh --timeout 180` to evaluate a local CPU model through the same backend boundary.
 
 Benchmark the current backend:
 

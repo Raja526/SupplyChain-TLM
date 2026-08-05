@@ -25,6 +25,10 @@ class EvaluationTests(unittest.TestCase):
         self.assertEqual(payload["accuracy"], 1.0)
         self.assertEqual(len(payload["confusion"]), 3)
 
+    def test_evaluation_accepts_local_backend(self):
+        from src.supplychain_tlm.evaluation import main
+        self.assertEqual(main(["examples/training_tasks.jsonl", "--command", "/bin/cat"]), 1)
+
 
 if __name__ == "__main__":
     unittest.main()

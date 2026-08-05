@@ -10,6 +10,7 @@ import json
 from .context import DecisionContext
 from .dataset import TrainingExample, load_jsonl
 from .model import RuleBasedSupplyChainTLM, TLMBackend
+from .process_backend import ProcessTLMBackend
 
 
 @dataclass(frozen=True)
@@ -61,9 +62,12 @@ def evaluate(examples: tuple[TrainingExample, ...], backend: TLMBackend | None =
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Evaluate a SupplyChain-TLM backend")
     parser.add_argument("dataset")
+    parser.add_argument("--command", nargs="+", help="local backend executable and arguments")
+    parser.add_argument("--timeout", type=float, default=180.0)
     parser.add_argument("--json", action="store_true", dest="as_json")
     args = parser.parse_args(argv)
-    result = evaluate(load_jsonl(args.dataset))
+    backend = ProcessTLMBackend(tuple(args.command), timeout_seconds=args.timeout) if args.command else None
+    result = evaluate(load_jsonl(args.dataset), backend)
     if args.as_json:
         print(json.dumps({"passed": result.passed, "total": result.total, "accuracy": result.accuracy, "failures": list(result.failures), "confusion": [{"expected": expected, "actual": actual, "count": count} for expected, actual, count in result.confusion]}, sort_keys=True))
     else:
