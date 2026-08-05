@@ -1,9 +1,12 @@
 import json
+import threading
 import unittest
+from http.server import ThreadingHTTPServer
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from urllib.request import Request, urlopen
 
-from src.supplychain_tlm.service import answer_payload, handle_json, release_payload
+from src.supplychain_tlm.service import AgentRequestHandler, answer_payload, handle_json, release_payload
 
 
 class ServiceTests(unittest.TestCase):
@@ -26,6 +29,21 @@ class ServiceTests(unittest.TestCase):
     def test_unknown_operation_is_rejected(self):
         with self.assertRaisesRegex(ValueError, "operation must be answer or release"):
             handle_json(json.dumps({"operation": "execute"}))
+
+    def test_http_endpoint_dispatches_json(self):
+        server = ThreadingHTTPServer(("127.0.0.1", 0), AgentRequestHandler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            body = json.dumps({"operation": "answer", "bundle": self.bundle, "request": "status"}).encode()
+            request = Request(f"http://127.0.0.1:{server.server_port}/v1/request", data=body, headers={"Content-Type": "application/json"})
+            with urlopen(request, timeout=5) as response:
+                payload = json.loads(response.read())
+            self.assertEqual(payload["mode"], "deterministic")
+        finally:
+            server.shutdown()
+            thread.join(timeout=5)
+            server.server_close()
 
 
 if __name__ == "__main__":
