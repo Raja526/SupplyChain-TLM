@@ -35,6 +35,12 @@ class ProcessBackendTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "no usable answer"):
             ProcessTLMBackend(command).answer(context)
 
+    def test_missing_approval_is_refusal_metadata(self):
+        from src.supplychain_tlm.context import DecisionContext
+        context = DecisionContext("Release immediately", ("compliance",), (("compliance", "approval_present", "false"),), (), True, ())
+        response = ProcessTLMBackend((sys.executable, "-c", "print('model')")).answer(context)
+        self.assertEqual(response.suggested_action, "refuse_action")
+
 
 if __name__ == "__main__":
     unittest.main()

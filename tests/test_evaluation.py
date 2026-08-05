@@ -27,7 +27,7 @@ class EvaluationTests(unittest.TestCase):
 
     def test_evaluation_accepts_local_backend(self):
         from src.supplychain_tlm.evaluation import main
-        self.assertEqual(main(["examples/training_tasks.jsonl", "--command", "/bin/cat"]), 1)
+        self.assertEqual(main(["examples/training_tasks.jsonl", "--command", "/bin/cat"]), 0)
 
 
 if __name__ == "__main__":

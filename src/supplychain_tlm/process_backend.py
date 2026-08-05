@@ -25,6 +25,9 @@ def clean_model_output(output: str) -> str:
 
 def safe_action_for(context: DecisionContext) -> str | None:
     """Derive workflow metadata from deterministic state, never model text."""
+    facts = dict((key, value) for _, key, value in context.domain_facts)
+    if facts.get("approval_present", "true").lower() == "false":
+        return "refuse_action"
     if not context.validation_passed:
         return "request_document_review"
     if "release" in context.request.lower() or "clearance" in context.request.lower():
