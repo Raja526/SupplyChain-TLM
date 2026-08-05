@@ -177,6 +177,8 @@ python3 -m src.supplychain_tlm.benchmark examples/training_tasks.jsonl
 
 The same harness can later compare a real CPU inference backend by passing it to the benchmark function.
 
+`build_release_plan()` exposes the autonomous workflow as explicit states: validation, retrieval, human review, approval, and execution. This is a plan only; it does not perform the final action.
+
 Uncertain extraction results can be placed into the durable human-review queue. Resolved items are recorded as append-only JSONL events before automation continues.
 
 Manage the queue from the terminal:

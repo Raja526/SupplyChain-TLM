@@ -78,6 +78,8 @@ OCR providers are replaceable. The Tesseract adapter is an optional subprocess i
 
 The ingestion pipeline is the controlled boundary from untrusted source files to candidate structured fields. Review status is returned explicitly and must be resolved before production automation trusts uncertain data.
 
+Workflow steps are explicit state transitions rather than hidden model behavior. This makes blocked, required, and approval-gated work visible to operators and auditable.
+
 ## Example decision
 
 “Can this shipment be released?” may require comparing the purchase order, invoice, packing list, bill of lading, HS code, Incoterm, insurance, and clearance status. This is why a shared model plus cross-document context is preferable to one model per document type.
