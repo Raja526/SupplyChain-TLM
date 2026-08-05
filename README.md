@@ -133,6 +133,10 @@ python3 -m src.supplychain_tlm.context_cli \
 
 `TLMBackend` defines the future model interface. The included `RuleBasedSupplyChainTLM` is only a deterministic baseline: it explains validation results and suggests review or approval, but it cannot execute tools.
 
+## Training and evaluation tasks
+
+`examples/training_tasks.jsonl` is the initial versioned task format for future compact-model training and evaluation. Each example contains a domain, instruction, structured context, target response, and safety label such as `request_review`, `request_approval`, or `refuse_action`.
+
 ## Roadmap
 
 1. Document schemas and deterministic validation.
