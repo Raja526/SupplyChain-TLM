@@ -143,6 +143,8 @@ python3 -m src.supplychain_tlm.answer_cli \
 
 This prints the answer, confidence, references, and suggested action. It never executes an enterprise tool.
 
+`format_prompt()` converts the same context into a bounded prompt contract for a future CPU model backend. The safety boundary is included in the prompt, but enforcement remains in deterministic code.
+
 ## Training and evaluation tasks
 
 `examples/training_tasks.jsonl` is the initial versioned task format for future compact-model training and evaluation. Each example contains a domain, instruction, structured context, target response, and safety label such as `request_review`, `request_approval`, or `refuse_action`.
