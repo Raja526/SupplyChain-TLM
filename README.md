@@ -181,6 +181,16 @@ python3 -m src.supplychain_tlm.answer_cli \
 
 The wrapper passes text to the Qwen executable only. Approval and enterprise tools remain controlled by this parent project.
 
+For CPU performance, keep the validated FP32/OpenBLAS path as the default:
+
+```bash
+export QWEN_THINKING=0
+export OPENBLAS_NUM_THREADS=1
+export OMP_NUM_THREADS=12
+```
+
+On the local Qwen3.5-2B checkpoint, a one-token prompt measured about 4.0 seconds with FP32/OpenBLAS, 5.2 seconds with `QWEN_LINEAR_INT8=1`, and 7.5 seconds with `QWEN_INT8=1`. INT8 remains opt-in and experimental; it is not enabled automatically.
+
 Check a checkpoint before connecting it:
 
 ```bash
