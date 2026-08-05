@@ -181,7 +181,7 @@ python3 -m src.supplychain_tlm.answer_cli \
 
 The wrapper passes text to the Qwen executable only. Approval and enterprise tools remain controlled by this parent project.
 
-The wrapper defaults `QWEN_THINKING=0` and `QWEN_CACHE_WEIGHTS=1` for predictable, lower-latency CPU responses. Override either variable when using a larger checkpoint or constrained memory.
+The wrapper defaults `QWEN_CHAT=1`, `QWEN_THINKING=0`, and `QWEN_CACHE_WEIGHTS=1` for conversational, predictable, lower-latency CPU responses. Override these variables when using a larger checkpoint or constrained memory.
 
 For CPU performance, keep the validated FP32/OpenBLAS path as the default:
 

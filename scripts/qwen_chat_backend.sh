@@ -11,6 +11,7 @@ QWEN_MAX_NEW="${QWEN_MAX_NEW:-128}"
 # user-overridable for larger checkpoints or low-memory machines.
 export QWEN_THINKING="${QWEN_THINKING:-0}"
 export QWEN_CACHE_WEIGHTS="${QWEN_CACHE_WEIGHTS:-1}"
+export QWEN_CHAT="${QWEN_CHAT:-1}"
 
 prompt="$(cat)"
 exec "$QWEN_CHAT_BIN" "$QWEN_MODEL" "$QWEN_CONFIG" "$QWEN_TOKENIZER" "$prompt" "$QWEN_MAX_NEW"
