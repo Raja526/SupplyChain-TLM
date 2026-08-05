@@ -1,7 +1,8 @@
 import unittest
+from tempfile import NamedTemporaryFile
 
 from src.supplychain_tlm.dataset import load_jsonl
-from src.supplychain_tlm.train import training_text
+from src.supplychain_tlm.train import training_text, validate_inputs
 
 
 class TrainingTests(unittest.TestCase):
@@ -10,6 +11,11 @@ class TrainingTests(unittest.TestCase):
         self.assertIn("Never execute tools", text)
         self.assertIn("ASSISTANT:", text)
         self.assertIn("Request authorized procurement approval", text)
+
+    def test_empty_dataset_is_rejected_before_training(self):
+        with NamedTemporaryFile("w", encoding="utf-8") as dataset:
+            with self.assertRaisesRegex(ValueError, "empty"):
+                validate_inputs("/does/not/exist", dataset.name)
 
 
 if __name__ == "__main__":

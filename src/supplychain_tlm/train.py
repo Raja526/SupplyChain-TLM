@@ -61,6 +61,19 @@ def train(model_name: str, dataset_path: str, output_dir: str, *, epochs: int = 
     return losses
 
 
+def validate_inputs(model_name: str, dataset_path: str) -> int:
+    """Validate local tokenizer availability and dataset contents without loading model weights."""
+    examples = load_jsonl(dataset_path)
+    if not examples:
+        raise ValueError("training dataset is empty")
+    try:
+        from transformers import AutoTokenizer
+        AutoTokenizer.from_pretrained(model_name, local_files_only=True)
+    except ImportError as error:
+        raise RuntimeError("validation requires transformers") from error
+    return len(examples)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Fine-tune a local causal LM on SupplyChain-TLM tasks")
     parser.add_argument("model")
@@ -69,7 +82,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--epochs", type=int, default=1)
     parser.add_argument("--max-length", type=int, default=512)
     parser.add_argument("--learning-rate", type=float, default=2e-5)
+    parser.add_argument("--validate-only", action="store_true", help="check local tokenizer and dataset without loading model weights")
     args = parser.parse_args(argv)
+    if args.validate_only:
+        print(f"validated_examples: {validate_inputs(args.model, args.dataset)}")
+        return 0
     losses = train(args.model, args.dataset, args.output, epochs=args.epochs, max_length=args.max_length, learning_rate=args.learning_rate)
     print("losses:", ",".join(f"{loss:.6f}" for loss in losses))
     return 0
