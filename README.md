@@ -157,6 +157,14 @@ Evaluate the current baseline:
 python3 -m src.supplychain_tlm.evaluation examples/training_tasks.jsonl
 ```
 
+Benchmark the current backend:
+
+```bash
+python3 -m src.supplychain_tlm.benchmark examples/training_tasks.jsonl
+```
+
+The same harness can later compare a real CPU inference backend by passing it to the benchmark function.
+
 Uncertain extraction results can be placed into the durable human-review queue. Resolved items are recorded as append-only JSONL events before automation continues.
 
 Manage the queue from the terminal:
