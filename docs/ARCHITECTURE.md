@@ -52,6 +52,8 @@ Audit events can be persisted as JSON Lines. This is a local development format;
 
 `ReleaseWorkflow` is the current reference composition. It keeps preparation separate from `approve_and_execute`, making it possible to insert a human-review UI or policy service between proposal and execution.
 
+The text extractor is only a first-pass adapter after OCR. Extracted values must retain source-page provenance and confidence before being admitted into a production validation workflow.
+
 ## Example decision
 
 “Can this shipment be released?” may require comparing the purchase order, invoice, packing list, bill of lading, HS code, Incoterm, insurance, and clearance status. This is why a shared model plus cross-document context is preferable to one model per document type.

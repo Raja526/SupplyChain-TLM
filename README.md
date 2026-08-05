@@ -87,6 +87,19 @@ python3 -m src.supplychain_tlm.cli examples/shipment_bundle.json \
 
 The CLI uses a fake ERP connector for development. It does not modify SAP, Oracle, email, or any external system.
 
+## Baseline OCR-text extraction
+
+For development fixtures, OCR text can be classified and scanned for common identifiers:
+
+```python
+from src.supplychain_tlm.text_extract import extract_fields
+
+result = extract_fields("Bill of Lading\\nShipment ID: SHIP-100\\nContainer Number: MSCU1234567")
+print(result.document_type, result.fields)
+```
+
+This baseline uses deterministic patterns. It is not a replacement for layout-aware OCR, table extraction, confidence calibration, or human review.
+
 ## Roadmap
 
 1. Document schemas and deterministic validation.
