@@ -95,6 +95,14 @@ class ApprovalGate:
     policy: ToolPolicy | None = None
     _completed_keys: set[str] = field(default_factory=set, init=False)
 
+    def __post_init__(self) -> None:
+        # Rehydrate idempotency state when an append-only audit log survives a
+        # process restart. A repeated approved call must remain blocked.
+        persisted = getattr(self.audit, "persisted_events", lambda: ())()
+        self._completed_keys.update(
+            event.reference for event in persisted if event.event_type == "tool_call_completed"
+        )
+
     def approve(self, proposal_id: str, approver: str, comment: str = "") -> Approval:
         approval = Approval(approver, "approved", proposal_id, comment)
         self.audit.record("approval", proposal_id, f"approved by {approver}")

@@ -43,6 +43,19 @@ class ToolBoundaryTests(unittest.TestCase):
             self.assertEqual(JsonlAuditLog(path).persisted_events()[0].event_type, "approval")
             self.assertEqual(len(JsonlAuditLog(path).persisted_events()), 1)
 
+    def test_idempotency_survives_gate_restart(self):
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "audit.jsonl"
+            audit = JsonlAuditLog(path)
+            first_gate = ApprovalGate(audit=audit)
+            approval = first_gate.approve("release:S-1", "procurement_manager")
+            first_gate.execute(self.tool, self.call, approval)
+
+            restarted_gate = ApprovalGate(audit=JsonlAuditLog(path))
+            with self.assertRaises(RuntimeError):
+                restarted_gate.execute(self.tool, self.call, approval)
+            self.assertEqual(restarted_gate.audit.events[-1].event_type, "duplicate_tool_call")
+
 
 if __name__ == "__main__":
     unittest.main()

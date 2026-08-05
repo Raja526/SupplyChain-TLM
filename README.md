@@ -259,6 +259,8 @@ The same harness can later compare a real CPU inference backend by passing it to
 
 The workflow CLI now uses this dry-run connector. Running it without `--approve-as` is review-only; execution requires the explicit `procurement_manager` approval role and records the action in the audit log.
 
+Completed tool-call idempotency is rehydrated from the append-only audit log, so restarting the process does not make an already executed ERP operation eligible for repetition.
+
 Uncertain extraction results can be placed into the durable human-review queue. Resolved items are recorded as append-only JSONL events before automation continues.
 
 Manage the queue from the terminal:
