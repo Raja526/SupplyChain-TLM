@@ -44,6 +44,8 @@ extract → validate → propose → approval/policy check → execute → audit
 
 The current planner implements only the `propose` stage. Enterprise connectors and execution are intentionally absent until approval, policy, idempotency, and audit contracts are defined.
 
+The tool contract now requires all four controls: a typed operation, an idempotency key, an approval record, and audit events for blocked, started, and completed calls.
+
 ## Example decision
 
 “Can this shipment be released?” may require comparing the purchase order, invoice, packing list, bill of lading, HS code, Incoterm, insurance, and clearance status. This is why a shared model plus cross-document context is preferable to one model per document type.
