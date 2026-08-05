@@ -23,6 +23,13 @@ class AnswerCLITests(unittest.TestCase):
         response = RuleBasedSupplyChainTLM().answer(build_decision_context("Why blocked?", invalid))
         self.assertEqual(response.suggested_action, "request_document_review")
 
+    def test_cli_can_use_local_process_backend(self):
+        output = StringIO()
+        command = ["/bin/cat"]
+        with redirect_stdout(output):
+            self.assertEqual(main(["examples/shipment_bundle.json", "status", "--command", *command]), 0)
+        self.assertIn("answer: You are SupplyChain-TLM", output.getvalue())
+
 
 if __name__ == "__main__":
     unittest.main()

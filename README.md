@@ -155,6 +155,14 @@ python3 -m src.supplychain_tlm.answer_cli \
 
 This prints the answer, confidence, references, and suggested action. It never executes an enterprise tool.
 
+Use a local CPU executable instead of the baseline backend:
+
+```bash
+python3 -m src.supplychain_tlm.answer_cli \
+  examples/shipment_bundle.json "Can this shipment be released?" \
+  --command /path/to/cpu-inference-binary
+```
+
 `format_prompt()` converts the same context into a bounded prompt contract for a future CPU model backend. The safety boundary is included in the prompt, but enforcement remains in deterministic code.
 
 `ProcessTLMBackend` connects that prompt to a local executable through stdin and returns text only. It supports timeouts and nonzero-exit handling; it does not pass tool capabilities to the model process.
