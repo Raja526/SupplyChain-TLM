@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import json
 
 from .domains import DEFAULT_ADAPTERS, DomainAdapter
 from .ingest import ShipmentBundle
@@ -19,6 +20,19 @@ class DecisionContext:
     references: tuple[str, ...]
     validation_passed: bool
     validation_issue_codes: tuple[str, ...]
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "request": self.request,
+            "capabilities": list(self.capabilities),
+            "domain_facts": [{"capability": capability, "key": key, "value": value} for capability, key, value in self.domain_facts],
+            "references": list(self.references),
+            "validation_passed": self.validation_passed,
+            "validation_issue_codes": list(self.validation_issue_codes),
+        }
+
+    def to_json(self) -> str:
+        return json.dumps(self.to_dict(), indent=2, sort_keys=True)
 
 
 def build_decision_context(

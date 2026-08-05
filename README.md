@@ -121,6 +121,14 @@ The release planner now attaches retrieved reference IDs to each `Plan`. These r
 
 `build_decision_context()` combines the request route, selected domain facts, retrieved references, and deterministic validation results into one model-ready context object.
 
+Inspect the serialized context with:
+
+```bash
+python3 -m src.supplychain_tlm.context_cli \
+  examples/shipment_bundle.json \
+  "Can this shipment be released?"
+```
+
 ## Roadmap
 
 1. Document schemas and deterministic validation.
