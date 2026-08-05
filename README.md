@@ -119,6 +119,8 @@ The release planner now attaches retrieved reference IDs to each `Plan`. These r
 
 `src/supplychain_tlm/domains.py` provides shared-fact adapters for Financial, Shipping, Customs, Warehouse, and Compliance capabilities. They are modular context providers, not separate models, and can feed the same SupplyChain-TLM.
 
+`build_decision_context()` combines the request route, selected domain facts, retrieved references, and deterministic validation results into one model-ready context object.
+
 ## Roadmap
 
 1. Document schemas and deterministic validation.

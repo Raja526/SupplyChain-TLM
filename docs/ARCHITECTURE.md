@@ -62,6 +62,8 @@ Planner outputs carry reference IDs so a reviewer can inspect the guidance used 
 
 Domain adapters expose capability-specific views over the same typed document bundle. This preserves cross-document context while allowing specialized prompts, rules, or future LoRA/sparse experts.
 
+The decision-context layer is the planned interface between these components and a compact TLM. It carries facts and evidence, while action authorization remains outside the model.
+
 ## Example decision
 
 “Can this shipment be released?” may require comparing the purchase order, invoice, packing list, bill of lading, HS code, Incoterm, insurance, and clearance status. This is why a shared model plus cross-document context is preferable to one model per document type.
