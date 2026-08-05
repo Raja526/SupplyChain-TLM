@@ -283,7 +283,7 @@ python3 -m src.supplychain_tlm.service --host 127.0.0.1 --port 8080
 
 Send `POST /v1/request` with a JSON body such as `{"operation":"answer","bundle":"examples/shipment_bundle.json","request":"Can this shipment be released?"}`.
 
-Remote binding is rejected by default; use `--allow-remote` only behind an authenticated network boundary.
+Remote binding is rejected by default; use `--allow-remote --token "$SUPPLYCHAIN_SERVICE_TOKEN"` only behind an authenticated network boundary. A bearer token is mandatory for remote binding.
 
 Completed tool-call idempotency is rehydrated from the append-only audit log, so restarting the process does not make an already executed ERP operation eligible for repetition.
 

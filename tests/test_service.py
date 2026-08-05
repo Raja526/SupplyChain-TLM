@@ -49,6 +49,10 @@ class ServiceTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "remote binding"):
             serve("0.0.0.0", 0)
 
+    def test_remote_binding_requires_token(self):
+        with self.assertRaisesRegex(ValueError, "bearer token"):
+            serve("0.0.0.0", 0, allow_remote=True)
+
 
 if __name__ == "__main__":
     unittest.main()

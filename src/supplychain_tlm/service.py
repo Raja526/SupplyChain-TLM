@@ -7,6 +7,8 @@ import argparse
 import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import ipaddress
+import os
+from functools import partial
 from typing import Any
 
 from .erp import DryRunERPClient, ERPToolAdapter
@@ -59,7 +61,14 @@ def handle_json(payload: str) -> str:
 class AgentRequestHandler(BaseHTTPRequestHandler):
     """Minimal POST /v1/request transport for localhost orchestration."""
 
+    def __init__(self, request: Any, client_address: Any, server: Any, auth_token: str | None = None) -> None:
+        self.auth_token = auth_token
+        super().__init__(request, client_address, server)
+
     def do_POST(self) -> None:  # noqa: N802 - stdlib handler API
+        if self.auth_token and self.headers.get("Authorization") != f"Bearer {self.auth_token}":
+            self.send_error(401, "authorization required")
+            return
         if self.path != "/v1/request":
             self.send_error(404, "use POST /v1/request")
             return
@@ -82,7 +91,7 @@ class AgentRequestHandler(BaseHTTPRequestHandler):
         return
 
 
-def serve(host: str = "127.0.0.1", port: int = 8080, *, allow_remote: bool = False) -> None:
+def serve(host: str = "127.0.0.1", port: int = 8080, *, allow_remote: bool = False, token: str | None = None) -> None:
     """Serve the restricted JSON endpoint; localhost is the safe default."""
     if not allow_remote and host not in {"localhost", "127.0.0.1", "::1"}:
         try:
@@ -91,7 +100,10 @@ def serve(host: str = "127.0.0.1", port: int = 8080, *, allow_remote: bool = Fal
             is_loopback = False
         if not is_loopback:
             raise ValueError("remote binding requires allow_remote=True")
-    server = ThreadingHTTPServer((host, port), AgentRequestHandler)
+    if allow_remote and not token:
+        raise ValueError("remote binding requires a bearer token")
+    handler = partial(AgentRequestHandler, auth_token=token)
+    server = ThreadingHTTPServer((host, port), handler)
     print(f"supplychain service listening on http://{host}:{port}/v1/request")
     try:
         server.serve_forever()
@@ -104,8 +116,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8080)
     parser.add_argument("--allow-remote", action="store_true", help="allow binding beyond localhost")
+    parser.add_argument("--token", default=os.environ.get("SUPPLYCHAIN_SERVICE_TOKEN"), help="bearer token; required with --allow-remote")
     args = parser.parse_args(argv)
-    serve(args.host, args.port, allow_remote=args.allow_remote)
+    serve(args.host, args.port, allow_remote=args.allow_remote, token=args.token)
     return 0
 
 
