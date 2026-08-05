@@ -137,6 +137,12 @@ python3 -m src.supplychain_tlm.context_cli \
 
 `examples/training_tasks.jsonl` is the initial versioned task format for future compact-model training and evaluation. Each example contains a domain, instruction, structured context, target response, and safety label such as `request_review`, `request_approval`, or `refuse_action`.
 
+Evaluate the current baseline:
+
+```bash
+python3 -m src.supplychain_tlm.evaluation examples/training_tasks.jsonl
+```
+
 ## Roadmap
 
 1. Document schemas and deterministic validation.

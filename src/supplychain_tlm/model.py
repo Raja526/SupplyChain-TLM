@@ -29,6 +29,14 @@ class RuleBasedSupplyChainTLM:
     name = "rule_based_baseline"
 
     def answer(self, context: DecisionContext) -> TLMResponse:
+        facts = dict((key, value) for _, key, value in context.domain_facts)
+        if facts.get("approval_present", "true").lower() == "false":
+            return TLMResponse(
+                answer="I cannot execute or authorize release without an approved approval record.",
+                confidence=0.99,
+                references=context.references,
+                suggested_action="refuse_action",
+            )
         if not context.validation_passed:
             codes = ", ".join(context.validation_issue_codes)
             return TLMResponse(

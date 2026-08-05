@@ -25,6 +25,13 @@ class ModelBoundaryTests(unittest.TestCase):
         self.assertEqual(response.suggested_action, "request_document_review")
         self.assertIn("TOTAL_MISMATCH", response.answer)
 
+    def test_missing_approval_refuses_immediate_action(self):
+        context = build_decision_context("Release immediately", self.bundle)
+        from dataclasses import replace
+        context = replace(context, domain_facts=(("compliance", "approval_present", "false"),))
+        response = self.backend.answer(context)
+        self.assertEqual(response.suggested_action, "refuse_action")
+
 
 if __name__ == "__main__":
     unittest.main()
