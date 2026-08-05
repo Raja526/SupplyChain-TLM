@@ -224,6 +224,18 @@ python3 -m src.supplychain_tlm.training_export \
 
 Each record contains system/user/assistant messages plus the domain and safety label as metadata.
 
+The local trainer uses a locally available Transformers checkpoint and never downloads weights automatically:
+
+```bash
+python3 -m src.supplychain_tlm.train \
+  /path/to/local-small-causal-model \
+  examples/training_tasks.jsonl \
+  /tmp/supplychain-tlm-checkpoint \
+  --epochs 1
+```
+
+Start with a small model and evaluate its safety-label confusion before attempting a larger checkpoint or CPU fine-tuning run.
+
 `format_prompt()` converts the same context into a compact prompt contract for a CPU model backend. The safety boundary is included in the prompt, but enforcement remains in deterministic code. The prompt intentionally includes only routed domain facts, validation status, and reference IDs to reduce CPU prefill work.
 
 `ProcessTLMBackend` connects that prompt to a local executable through stdin and returns text only. It supports timeouts, nonzero-exit handling, and removes known Qwen inference telemetry lines from stdout; it does not pass tool capabilities to the model process.
