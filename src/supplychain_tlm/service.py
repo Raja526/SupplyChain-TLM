@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 from dataclasses import asdict
+import argparse
 import json
-from pathlib import Path
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 
 from .erp import DryRunERPClient, ERPToolAdapter
@@ -52,3 +53,52 @@ def handle_json(payload: str) -> str:
     else:
         raise ValueError("operation must be answer or release")
     return json.dumps(result, sort_keys=True)
+
+
+class AgentRequestHandler(BaseHTTPRequestHandler):
+    """Minimal POST /v1/request transport for localhost orchestration."""
+
+    def do_POST(self) -> None:  # noqa: N802 - stdlib handler API
+        if self.path != "/v1/request":
+            self.send_error(404, "use POST /v1/request")
+            return
+        try:
+            size = int(self.headers.get("Content-Length", "0"))
+            if size <= 0 or size > 1_000_000:
+                raise ValueError("request body must be between 1 byte and 1 MB")
+            result = handle_json(self.rfile.read(size).decode("utf-8"))
+        except (ValueError, KeyError, json.JSONDecodeError) as error:
+            self.send_error(400, str(error))
+            return
+        body = result.encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def log_message(self, format: str, *args: object) -> None:
+        return
+
+
+def serve(host: str = "127.0.0.1", port: int = 8080) -> None:
+    """Serve the restricted JSON endpoint; localhost is the safe default."""
+    server = ThreadingHTTPServer((host, port), AgentRequestHandler)
+    print(f"supplychain service listening on http://{host}:{port}/v1/request")
+    try:
+        server.serve_forever()
+    finally:
+        server.server_close()
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Run the local SupplyChain-TLM JSON service")
+    parser.add_argument("--host", default="127.0.0.1")
+    parser.add_argument("--port", type=int, default=8080)
+    args = parser.parse_args(argv)
+    serve(args.host, args.port)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

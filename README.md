@@ -275,6 +275,14 @@ The review queue also accepts `--json` for automated enqueue, list, and resolve 
 
 `src/supplychain_tlm/service.py` provides a small embeddable JSON service boundary for deterministic answers and approval-gated dry-run releases. It accepts only the `answer` and `release` operations and never executes arbitrary commands supplied by a caller.
 
+Run its optional localhost transport with:
+
+```bash
+python3 -m src.supplychain_tlm.service --host 127.0.0.1 --port 8080
+```
+
+Send `POST /v1/request` with a JSON body such as `{"operation":"answer","bundle":"examples/shipment_bundle.json","request":"Can this shipment be released?"}`.
+
 Completed tool-call idempotency is rehydrated from the append-only audit log, so restarting the process does not make an already executed ERP operation eligible for repetition.
 
 Approvals are also bound to the call's idempotency/proposal key; an approval for one proposal cannot authorize a different operation.

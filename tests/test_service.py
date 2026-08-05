@@ -23,6 +23,10 @@ class ServiceTests(unittest.TestCase):
         payload = handle_json(json.dumps({"operation": "answer", "bundle": self.bundle, "request": "status"}))
         self.assertEqual(json.loads(payload)["mode"], "deterministic")
 
+    def test_unknown_operation_is_rejected(self):
+        with self.assertRaisesRegex(ValueError, "operation must be answer or release"):
+            handle_json(json.dumps({"operation": "execute"}))
+
 
 if __name__ == "__main__":
     unittest.main()
