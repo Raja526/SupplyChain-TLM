@@ -226,6 +226,15 @@ python3 -m src.supplychain_tlm.answer_cli \
 
 Use the local Qwen backend when a natural-language explanation or broader reasoning is needed.
 
+For unattended CPU deployments, add `--fallback-fast-path` to return the deterministic validation decision if the model times out or fails:
+
+```bash
+python3 -m src.supplychain_tlm.answer_cli \
+  examples/shipment_bundle.json "Can this shipment be released?" \
+  --command scripts/qwen_chat_backend.sh \
+  --fallback-fast-path --timeout 180
+```
+
 ## Training and evaluation tasks
 
 `examples/training_tasks.jsonl` is the initial versioned task format for future compact-model training and evaluation. Each example contains a domain, instruction, structured context, target response, and safety label such as `request_review`, `request_approval`, or `refuse_action`.

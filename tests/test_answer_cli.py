@@ -36,6 +36,12 @@ class AnswerCLITests(unittest.TestCase):
             self.assertEqual(main(["examples/shipment_bundle.json", "Can this shipment be released?", "--fast-path", "--command", "/bin/false"]), 0)
         self.assertIn("suggested_action: request_approval", output.getvalue())
 
+    def test_failed_local_model_can_fall_back(self):
+        output = StringIO()
+        with redirect_stdout(output):
+            self.assertEqual(main(["examples/shipment_bundle.json", "Can this shipment be released?", "--command", "/bin/false", "--fallback-fast-path"]), 0)
+        self.assertIn("suggested_action: request_approval", output.getvalue())
+
 
 if __name__ == "__main__":
     unittest.main()
