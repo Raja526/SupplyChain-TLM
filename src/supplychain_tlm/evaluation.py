@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import argparse
 from collections import Counter
+import json
 
 from .context import DecisionContext
 from .dataset import TrainingExample, load_jsonl
@@ -60,13 +61,17 @@ def evaluate(examples: tuple[TrainingExample, ...], backend: TLMBackend | None =
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Evaluate a SupplyChain-TLM backend")
     parser.add_argument("dataset")
+    parser.add_argument("--json", action="store_true", dest="as_json")
     args = parser.parse_args(argv)
     result = evaluate(load_jsonl(args.dataset))
-    print(f"passed={result.passed} total={result.total} accuracy={result.accuracy:.2%}")
-    for expected, actual, count in result.confusion:
-        print(f"confusion expected={expected} actual={actual} count={count}")
-    for failure in result.failures:
-        print(f"FAIL: {failure}")
+    if args.as_json:
+        print(json.dumps({"passed": result.passed, "total": result.total, "accuracy": result.accuracy, "failures": list(result.failures), "confusion": [{"expected": expected, "actual": actual, "count": count} for expected, actual, count in result.confusion]}, sort_keys=True))
+    else:
+        print(f"passed={result.passed} total={result.total} accuracy={result.accuracy:.2%}")
+        for expected, actual, count in result.confusion:
+            print(f"confusion expected={expected} actual={actual} count={count}")
+        for failure in result.failures:
+            print(f"FAIL: {failure}")
     return 0 if not result.failures else 1
 
 

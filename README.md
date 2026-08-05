@@ -289,6 +289,7 @@ python3 -m src.supplychain_tlm.evaluation examples/training_tasks.jsonl
 ```
 
 Evaluation reports both aggregate accuracy and safety-label confusion counts, which makes approval/review/refusal regressions visible during model development.
+Use `--json` to export the evaluation result for automated model gates.
 
 Benchmark the current backend:
 
