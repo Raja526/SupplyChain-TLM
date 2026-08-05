@@ -180,6 +180,14 @@ python3 -m src.supplychain_tlm.answer_cli \
 
 The wrapper passes text to the Qwen executable only. Approval and enterprise tools remain controlled by this parent project.
 
+Check a checkpoint before connecting it:
+
+```bash
+python3 -m src.supplychain_tlm.checkpoint /path/to/Qwen3.5-2B
+```
+
+The preflight rejects missing files and architecture mismatches, including accidentally pointing the 2B backend at the 35B checkpoint.
+
 `format_prompt()` converts the same context into a bounded prompt contract for a future CPU model backend. The safety boundary is included in the prompt, but enforcement remains in deterministic code.
 
 `ProcessTLMBackend` connects that prompt to a local executable through stdin and returns text only. It supports timeouts and nonzero-exit handling; it does not pass tool capabilities to the model process.
