@@ -29,6 +29,12 @@ class ProcessBackendTests(unittest.TestCase):
         self.assertEqual(response.answer, "model wording")
         self.assertEqual(response.suggested_action, "request_approval")
 
+    def test_empty_model_output_is_rejected(self):
+        command = (sys.executable, "-c", "print('qwen config: 24 layers')")
+        context = build_decision_context("status", load_bundle("examples/shipment_bundle.json"))
+        with self.assertRaisesRegex(RuntimeError, "no usable answer"):
+            ProcessTLMBackend(command).answer(context)
+
 
 if __name__ == "__main__":
     unittest.main()

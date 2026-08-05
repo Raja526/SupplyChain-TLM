@@ -48,4 +48,7 @@ class ProcessTLMBackend:
         if completed.returncode != 0:
             detail = completed.stderr.strip() or f"exit code {completed.returncode}"
             raise RuntimeError(f"local model failed: {detail}")
-        return TLMResponse(clean_model_output(completed.stdout), 0.0, context.references, safe_action_for(context))
+        answer = clean_model_output(completed.stdout)
+        if not answer:
+            raise RuntimeError("local model returned no usable answer")
+        return TLMResponse(answer, 0.0, context.references, safe_action_for(context))
