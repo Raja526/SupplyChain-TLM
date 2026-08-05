@@ -28,7 +28,9 @@ class BenchmarkTests(unittest.TestCase):
         output = StringIO()
         with redirect_stdout(output):
             self.assertEqual(main(["examples/training_tasks.jsonl", "--json"]), 0)
-        self.assertEqual(json.loads(output.getvalue())["samples"], 3)
+        payload = json.loads(output.getvalue())
+        self.assertEqual(payload["samples"], 3)
+        self.assertIn("OMP_NUM_THREADS", payload["environment"])
 
 
 if __name__ == "__main__":

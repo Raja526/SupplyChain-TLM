@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import argparse
 import json
+import os
 import time
 
 from .context import DecisionContext
@@ -47,7 +48,13 @@ def main(argv: list[str] | None = None) -> int:
     backend = ProcessTLMBackend(tuple(args.command), timeout_seconds=args.timeout) if args.command else None
     result = benchmark(contexts, backend)
     if args.as_json:
-        print(json.dumps({"samples": result.samples, "elapsed_seconds": result.elapsed_seconds, "average_ms": result.average_milliseconds, "samples_per_second": result.samples_per_second}, sort_keys=True))
+        print(json.dumps({
+            "samples": result.samples,
+            "elapsed_seconds": result.elapsed_seconds,
+            "average_ms": result.average_milliseconds,
+            "samples_per_second": result.samples_per_second,
+            "environment": {key: os.environ.get(key, "") for key in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "QWEN_INT8", "QWEN_LINEAR_INT8", "QWEN_CACHE_WEIGHTS", "QWEN_THINKING")},
+        }, sort_keys=True))
     else:
         print(f"samples: {result.samples}")
         print(f"elapsed_seconds: {result.elapsed_seconds:.6f}")

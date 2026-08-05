@@ -304,7 +304,7 @@ python3 -m src.supplychain_tlm.benchmark \
   --command scripts/qwen_chat_backend.sh --timeout 180
 ```
 
-Add `--json` to save benchmark results for reproducible hardware comparisons.
+Add `--json` to save benchmark results for reproducible hardware comparisons; the output records relevant Qwen and threading environment variables.
 
 The same harness can later compare a real CPU inference backend by passing it to the benchmark function.
 
