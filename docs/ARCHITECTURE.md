@@ -76,6 +76,8 @@ The review queue provides the human-in-the-loop path for uncertain extraction. A
 
 OCR providers are replaceable. The Tesseract adapter is an optional subprocess integration with timeout and failure handling; it is not required for the core tests or JSON workflow.
 
+The ingestion pipeline is the controlled boundary from untrusted source files to candidate structured fields. Review status is returned explicitly and must be resolved before production automation trusts uncertain data.
+
 ## Example decision
 
 “Can this shipment be released?” may require comparing the purchase order, invoice, packing list, bill of lading, HS code, Incoterm, insurance, and clearance status. This is why a shared model plus cross-document context is preferable to one model per document type.
