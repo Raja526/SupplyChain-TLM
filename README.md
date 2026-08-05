@@ -59,6 +59,14 @@ The JSON loader performs schema conversion only. It does not trust the extracted
 
 It now also includes an optional `TesseractProvider`. Install Tesseract separately, then call it with an image/PDF path. The current adapter returns page-1 text; production layout and page-level provenance remain future work.
 
+Run the installed OCR pipeline:
+
+```bash
+python3 -m src.supplychain_tlm.ocr_cli invoice.png
+```
+
+The command runs Tesseract, applies the baseline field extractor, and reports whether human review is required.
+
 `src/supplychain_tlm/planner.py` creates approval-gated action proposals. It never calls an ERP, sends email, or mutates external state. Invalid document bundles produce a `blocked` proposal.
 
 `src/supplychain_tlm/tools.py` defines the next boundary: tools require an explicit approval record, an idempotency key, and audit events. `FakeERPTool` is only a test double; it does not connect to a real ERP.
