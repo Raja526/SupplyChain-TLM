@@ -145,6 +145,14 @@ python3 -m src.supplychain_tlm.evaluation examples/training_tasks.jsonl
 
 Uncertain extraction results can be placed into the durable human-review queue. Resolved items are recorded as append-only JSONL events before automation continues.
 
+Manage the queue from the terminal:
+
+```bash
+python3 -m src.supplychain_tlm.review_cli --queue review/review.jsonl enqueue document.txt
+python3 -m src.supplychain_tlm.review_cli --queue review/review.jsonl list
+python3 -m src.supplychain_tlm.review_cli --queue review/review.jsonl resolve ITEM_ID analyst-1 corrected
+```
+
 ## Roadmap
 
 1. Document schemas and deterministic validation.
