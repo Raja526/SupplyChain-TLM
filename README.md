@@ -163,6 +163,23 @@ python3 -m src.supplychain_tlm.answer_cli \
   --command /path/to/cpu-inference-binary
 ```
 
+For the existing Qwen C chat binary, use the included wrapper:
+
+```bash
+export QWEN_CHAT_BIN=~/Downloads/llm-in-c/qwen3.5-2b-in-c/bin/qwen36-chat
+export QWEN_MODEL=/path/to/Qwen3.5-2B
+export QWEN_CONFIG="$QWEN_MODEL/config.json"
+export QWEN_TOKENIZER="$QWEN_MODEL/tokenizer.json"
+export QWEN_MAX_NEW=128
+
+python3 -m src.supplychain_tlm.answer_cli \
+  examples/shipment_bundle.json \
+  "Can this shipment be released?" \
+  --command scripts/qwen_chat_backend.sh
+```
+
+The wrapper passes text to the Qwen executable only. Approval and enterprise tools remain controlled by this parent project.
+
 `format_prompt()` converts the same context into a bounded prompt contract for a future CPU model backend. The safety boundary is included in the prompt, but enforcement remains in deterministic code.
 
 `ProcessTLMBackend` connects that prompt to a local executable through stdin and returns text only. It supports timeouts and nonzero-exit handling; it does not pass tool capabilities to the model process.
