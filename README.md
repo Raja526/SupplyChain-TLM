@@ -255,6 +255,8 @@ The same harness can later compare a real CPU inference backend by passing it to
 
 `build_release_plan()` exposes the autonomous workflow as explicit states: validation, retrieval, human review, approval, and execution. This is a plan only; it does not perform the final action.
 
+`src/supplychain_tlm/erp.py` defines the ERP connector boundary. `ERPToolAdapter` is invoked only through `ApprovalGate`; `DryRunERPClient` provides a safe local implementation. A future SAP, Oracle, or warehouse client can replace it without giving the model direct system access.
+
 Uncertain extraction results can be placed into the durable human-review queue. Resolved items are recorded as append-only JSONL events before automation continues.
 
 Manage the queue from the terminal:
