@@ -261,6 +261,8 @@ The workflow CLI now uses this dry-run connector. Running it without `--approve-
 
 Completed tool-call idempotency is rehydrated from the append-only audit log, so restarting the process does not make an already executed ERP operation eligible for repetition.
 
+Approvals are also bound to the call's idempotency/proposal key; an approval for one proposal cannot authorize a different operation.
+
 Uncertain extraction results can be placed into the durable human-review queue. Resolved items are recorded as append-only JSONL events before automation continues.
 
 Manage the queue from the terminal:

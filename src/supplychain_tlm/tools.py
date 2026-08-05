@@ -114,6 +114,9 @@ class ApprovalGate:
         if approval is None or approval.decision != "approved":
             self.audit.record("blocked_tool_call", call_id, f"tool={tool.name} operation={call.operation}")
             raise PermissionError("tool call requires an approved approval record")
+        if approval.proposal_id != call_id:
+            self.audit.record("blocked_tool_call", call_id, "approval does not match tool-call proposal")
+            raise PermissionError("approval does not match tool-call proposal")
         if self.policy is not None:
             policy_error = self.policy.check(tool, call, approval)
             if policy_error:

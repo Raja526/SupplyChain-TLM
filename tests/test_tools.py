@@ -16,19 +16,25 @@ class ToolBoundaryTests(unittest.TestCase):
             self.gate.execute(self.tool, self.call)
         self.assertEqual(self.gate.audit.events[0].event_type, "blocked_tool_call")
 
+    def test_approval_cannot_authorize_different_call(self):
+        approval = self.gate.approve("release:S-2", "procurement_manager")
+        with self.assertRaises(PermissionError):
+            self.gate.execute(self.tool, self.call, approval)
+        self.assertIn("does not match", self.gate.audit.events[-1].details)
+
     def test_approved_call_executes_and_is_audited(self):
-        approval = self.gate.approve("proposal-1", "procurement_manager")
+        approval = self.gate.approve("release:S-1", "procurement_manager")
         self.assertEqual(self.gate.execute(self.tool, self.call, approval), "released:S-1")
         self.assertEqual([event.event_type for event in self.gate.audit.events], ["approval", "tool_call_started", "tool_call_completed"])
 
     def test_policy_rejects_wrong_approver(self):
         gate = ApprovalGate(policy=ToolPolicy(frozenset({"fake_erp"}), frozenset({"release_shipment"}), "procurement_manager"))
-        approval = gate.approve("proposal-1", "warehouse_operator")
+        approval = gate.approve("release:S-1", "warehouse_operator")
         with self.assertRaises(PermissionError):
             gate.execute(self.tool, self.call, approval)
 
     def test_idempotency_blocks_duplicate_execution(self):
-        approval = self.gate.approve("proposal-1", "procurement_manager")
+        approval = self.gate.approve("release:S-1", "procurement_manager")
         self.gate.execute(self.tool, self.call, approval)
         with self.assertRaises(RuntimeError):
             self.gate.execute(self.tool, self.call, approval)
@@ -39,7 +45,7 @@ class ToolBoundaryTests(unittest.TestCase):
             path = Path(directory) / "audit.jsonl"
             audit = JsonlAuditLog(path)
             gate = ApprovalGate(audit=audit)
-            gate.approve("proposal-1", "procurement_manager")
+            gate.approve("release:S-1", "procurement_manager")
             self.assertEqual(JsonlAuditLog(path).persisted_events()[0].event_type, "approval")
             self.assertEqual(len(JsonlAuditLog(path).persisted_events()), 1)
 
