@@ -30,6 +30,12 @@ class AnswerCLITests(unittest.TestCase):
             self.assertEqual(main(["examples/shipment_bundle.json", "status", "--command", *command, "--timeout", "5"]), 0)
         self.assertIn("answer: You are SupplyChain-TLM", output.getvalue())
 
+    def test_fast_path_skips_local_model(self):
+        output = StringIO()
+        with redirect_stdout(output):
+            self.assertEqual(main(["examples/shipment_bundle.json", "Can this shipment be released?", "--fast-path", "--command", "/bin/false"]), 0)
+        self.assertIn("suggested_action: request_approval", output.getvalue())
+
 
 if __name__ == "__main__":
     unittest.main()

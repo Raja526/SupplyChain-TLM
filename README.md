@@ -214,6 +214,16 @@ The split is deterministic and keeps examples disjoint, which makes later CPU-mo
 
 `ProcessTLMBackend` connects that prompt to a local executable through stdin and returns text only. It supports timeouts, nonzero-exit handling, and removes known Qwen inference telemetry lines from stdout; it does not pass tool capabilities to the model process.
 
+For routine release/validation decisions where deterministic checks are sufficient, use the immediate fast path and avoid model prefill entirely:
+
+```bash
+python3 -m src.supplychain_tlm.answer_cli \
+  examples/shipment_bundle.json "Can this shipment be released?" \
+  --fast-path
+```
+
+Use the local Qwen backend when a natural-language explanation or broader reasoning is needed.
+
 ## Training and evaluation tasks
 
 `examples/training_tasks.jsonl` is the initial versioned task format for future compact-model training and evaluation. Each example contains a domain, instruction, structured context, target response, and safety label such as `request_review`, `request_approval`, or `refuse_action`.
