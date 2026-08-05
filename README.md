@@ -275,6 +275,8 @@ Completed tool-call idempotency is rehydrated from the append-only audit log, so
 
 Approvals are also bound to the call's idempotency/proposal key; an approval for one proposal cannot authorize a different operation.
 
+The human-review queue is idempotent by source while an item is open, preventing repeated ingestion runs from creating duplicate review tasks.
+
 Uncertain extraction results can be placed into the durable human-review queue. Resolved items are recorded as append-only JSONL events before automation continues.
 
 Manage the queue from the terminal:

@@ -12,6 +12,8 @@ class ReviewQueueTests(unittest.TestCase):
             queue = ReviewQueue(Path(directory) / "review.jsonl")
             item = queue.enqueue_extraction("invoice-1.pdf", extract_fields("unreadable text"))
             self.assertIsNotNone(item)
+            duplicate = queue.enqueue_extraction("invoice-1.pdf", extract_fields("unreadable text"))
+            self.assertEqual(duplicate.item_id, item.item_id)
             self.assertEqual(len(queue.open_items()), 1)
             resolved = queue.resolve(item.item_id, "analyst-1", "corrected_fields")
             self.assertEqual(resolved.status, "resolved")

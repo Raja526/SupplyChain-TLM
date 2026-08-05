@@ -40,6 +40,9 @@ class ReviewQueue:
         return latest
 
     def enqueue(self, source: str, reason: str) -> ReviewItem:
+        for existing in self._latest().values():
+            if existing.status == "open" and existing.source == source:
+                return existing
         item = ReviewItem(str(uuid.uuid4()), source, reason)
         self._write(item)
         return item
