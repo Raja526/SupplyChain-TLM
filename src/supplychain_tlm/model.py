@@ -28,6 +28,12 @@ class RuleBasedSupplyChainTLM:
 
     name = "rule_based_baseline"
 
+    @staticmethod
+    def _requires_approval(request: str) -> bool:
+        action_terms = ("release", "clearance", "clear", "post", "approve", "execute", "dispatch", "leave the port", "depart")
+        lowered = request.lower()
+        return any(term in lowered for term in action_terms)
+
     def answer(self, context: DecisionContext) -> TLMResponse:
         facts = dict((key, value) for _, key, value in context.domain_facts)
         if facts.get("approval_present", "true").lower() == "false":
@@ -45,9 +51,16 @@ class RuleBasedSupplyChainTLM:
                 references=context.references,
                 suggested_action="request_document_review",
             )
+        if self._requires_approval(context.request):
+            return TLMResponse(
+                answer="The available document checks passed. The requested action may be proposed for authorized review.",
+                confidence=0.90,
+                references=context.references,
+                suggested_action="request_approval",
+            )
         return TLMResponse(
-            answer="The available document checks passed. Shipment release may be proposed for authorized review.",
+            answer="The available document checks passed. I can explain the evidence, but I will not execute an enterprise action.",
             confidence=0.90,
             references=context.references,
-            suggested_action="request_approval",
+            suggested_action=None,
         )
