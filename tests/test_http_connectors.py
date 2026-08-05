@@ -1,6 +1,7 @@
 import json
 import unittest
 from unittest.mock import patch
+from urllib.error import HTTPError
 
 from src.supplychain_tlm.http_connectors import JSONHTTPClient, SAPHTTPConnector, WMSHTTPConnector
 
@@ -42,6 +43,13 @@ class HTTPConnectorTests(unittest.TestCase):
         with patch("src.supplychain_tlm.http_connectors.urlopen", return_value=FakeResponse()) as open_url:
             client.call("sap/release", {"shipment_id": "S-1"}, idempotency_key="release:S-1")
         self.assertEqual(open_url.call_args.args[0].get_header("Idempotency-key"), "release:S-1")
+
+    def test_transient_server_error_is_retried(self):
+        client = JSONHTTPClient("https://sap.example.test", "secret", max_attempts=2, retry_backoff_seconds=0)
+        failure = HTTPError("https://sap.example.test/sap/release", 503, "busy", {}, None)
+        with patch("src.supplychain_tlm.http_connectors.urlopen", side_effect=[failure, FakeResponse()]) as open_url:
+            self.assertEqual(client.call("sap/release", {"shipment_id": "S-1"}), "ok")
+        self.assertEqual(open_url.call_count, 2)
 
 
 if __name__ == "__main__":
