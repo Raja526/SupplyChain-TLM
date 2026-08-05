@@ -23,6 +23,19 @@ class OCRDatasetTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "file not found"):
                 load_manifest(manifest)
 
+    def test_same_document_cannot_cross_splits(self):
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "invoice.txt").write_text("Invoice # INV-1", encoding="utf-8")
+            manifest = root / "manifest.jsonl"
+            rows = [
+                {"item_id": "i-1", "path": "invoice.txt", "document_type": "invoice", "split": "train"},
+                {"item_id": "i-2", "path": "invoice.txt", "document_type": "invoice", "split": "test"},
+            ]
+            manifest.write_text("\n".join(json.dumps(row) for row in rows) + "\n", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "multiple splits"):
+                load_manifest(manifest)
+
 
 if __name__ == "__main__":
     unittest.main()

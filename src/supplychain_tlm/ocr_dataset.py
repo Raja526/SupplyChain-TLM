@@ -26,6 +26,7 @@ def load_manifest(path: str | Path, *, root: str | Path | None = None) -> tuple[
     base = Path(root) if root else manifest.parent
     items: list[OCRDatasetItem] = []
     seen: set[str] = set()
+    seen_paths: dict[str, str] = {}
     for line_number, line in enumerate(manifest.read_text(encoding="utf-8").splitlines(), 1):
         if not line.strip():
             continue
@@ -40,6 +41,9 @@ def load_manifest(path: str | Path, *, root: str | Path | None = None) -> tuple[
                 raise ValueError("item_id and path cannot be empty")
             if item_id in seen:
                 raise ValueError(f"duplicate item_id: {item_id}")
+            previous_split = seen_paths.get(relative_path)
+            if previous_split is not None and previous_split != split:
+                raise ValueError(f"document path appears in multiple splits: {relative_path}")
             if document_type not in DOCUMENT_TYPES:
                 raise ValueError(f"unsupported document_type: {document_type}")
             if split not in SPLITS:
@@ -52,6 +56,7 @@ def load_manifest(path: str | Path, *, root: str | Path | None = None) -> tuple[
         except (KeyError, json.JSONDecodeError, ValueError) as error:
             raise ValueError(f"invalid OCR manifest at line {line_number}: {error}") from error
         seen.add(item_id)
+        seen_paths[relative_path] = split
         items.append(OCRDatasetItem(item_id, relative_path, document_type, split, fields))
     if not items:
         raise ValueError("OCR manifest is empty")

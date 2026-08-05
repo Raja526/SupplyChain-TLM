@@ -324,7 +324,7 @@ The review queue also accepts `--json` for automated enqueue, list, and resolve 
 
 `src/supplychain_tlm/ocr_quality.py` reports OCR page coverage, empty pages, character volume, extraction confidence, and review requirements. Use these metrics to reject unusable scans and curate production OCR datasets.
 
-`src/supplychain_tlm/ocr_dataset.py` validates an annotated OCR manifest before ingestion. Every item must have a unique ID, existing source file, supported document type, train/validation/test split, and structured field annotations.
+`src/supplychain_tlm/ocr_dataset.py` validates an annotated OCR manifest before ingestion. Every item must have a unique ID, existing source file, supported document type, train/validation/test split, and structured field annotations. The same source path cannot occur in multiple splits.
 
 `src/supplychain_tlm/service.py` provides a small embeddable JSON service boundary for deterministic answers and approval-gated dry-run releases. It accepts only the `answer` and `release` operations and never executes arbitrary commands supplied by a caller.
 
