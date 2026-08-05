@@ -1,0 +1,40 @@
+{
+  "invoice": {
+    "document_id": "INV-100",
+    "supplier": "Acme Components",
+    "buyer": "Raja Manufacturing",
+    "po_number": "PO-100",
+    "currency": "USD",
+    "total_amount": 1000.0,
+    "lines": [
+      {"sku": "SKU-1", "description": "Industrial sensor", "quantity": 10, "unit_price": 100.0}
+    ]
+  },
+  "purchase_order": {
+    "document_id": "PO-100",
+    "supplier": "Acme Components",
+    "buyer": "Raja Manufacturing",
+    "po_number": "PO-100",
+    "currency": "USD",
+    "total_amount": 1000.0,
+    "lines": [
+      {"sku": "SKU-1", "description": "Industrial sensor", "quantity": 10, "unit_price": 100.0}
+    ]
+  },
+  "packing_list": {
+    "document_id": "PK-100",
+    "supplier": "Acme Components",
+    "buyer": "Raja Manufacturing",
+    "shipment_id": "SHIP-100",
+    "lines": [
+      {"sku": "SKU-1", "description": "Industrial sensor", "quantity": 10}
+    ]
+  },
+  "bill_of_lading": {
+    "document_id": "BOL-100",
+    "supplier": "Acme Components",
+    "buyer": "Raja Manufacturing",
+    "shipment_id": "SHIP-100",
+    "container_numbers": ["MSCU1234567"]
+  }
+}

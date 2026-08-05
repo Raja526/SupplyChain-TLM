@@ -43,6 +43,16 @@ python3 -m src.supplychain_tlm.validation
 
 Validation failures are returned as typed issue codes such as `PO_NUMBER_MISMATCH`, `CURRENCY_MISMATCH`, and `MISSING_CONTAINER`. These checks are intentionally independent of the language model and should run before a planner proposes an enterprise action.
 
+## Load extracted JSON
+
+The ingestion boundary accepts structured output from a future OCR or document-extraction system:
+
+```bash
+python3 -m src.supplychain_tlm.ingest examples/shipment_bundle.json
+```
+
+The JSON loader performs schema conversion only. It does not trust the extracted data; the resulting typed documents still pass through deterministic validation.
+
 ## Roadmap
 
 1. Document schemas and deterministic validation.
