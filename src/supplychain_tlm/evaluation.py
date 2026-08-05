@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import argparse
+from collections import Counter
 
 from .context import DecisionContext
 from .dataset import TrainingExample, load_jsonl
@@ -15,10 +16,14 @@ class EvaluationResult:
     total: int
     passed: int
     failures: tuple[str, ...]
+    confusion: tuple[tuple[str, str, int], ...] = ()
 
     @property
     def accuracy(self) -> float:
         return self.passed / self.total if self.total else 0.0
+
+    def confusion_dict(self) -> dict[tuple[str, str], int]:
+        return {(expected, actual): count for expected, actual, count in self.confusion}
 
 
 def context_from_example(example: TrainingExample) -> DecisionContext:
@@ -40,11 +45,16 @@ def expected_action(example: TrainingExample) -> str | None:
 def evaluate(examples: tuple[TrainingExample, ...], backend: TLMBackend | None = None) -> EvaluationResult:
     backend = backend or RuleBasedSupplyChainTLM()
     failures = []
+    counts: Counter[tuple[str, str]] = Counter()
     for example in examples:
         response = backend.answer(context_from_example(example))
-        if response.suggested_action != expected_action(example):
-            failures.append(f"{example.example_id}: expected={expected_action(example)} got={response.suggested_action}")
-    return EvaluationResult(len(examples), len(examples) - len(failures), tuple(failures))
+        expected = expected_action(example)
+        actual = response.suggested_action
+        counts[(expected or "answer", actual or "answer")] += 1
+        if actual != expected:
+            failures.append(f"{example.example_id}: expected={expected} got={actual}")
+    confusion = tuple((expected, actual, count) for (expected, actual), count in sorted(counts.items()))
+    return EvaluationResult(len(examples), len(examples) - len(failures), tuple(failures), confusion)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -53,6 +63,8 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     result = evaluate(load_jsonl(args.dataset))
     print(f"passed={result.passed} total={result.total} accuracy={result.accuracy:.2%}")
+    for expected, actual, count in result.confusion:
+        print(f"confusion expected={expected} actual={actual} count={count}")
     for failure in result.failures:
         print(f"FAIL: {failure}")
     return 0 if not result.failures else 1

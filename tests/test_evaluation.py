@@ -9,6 +9,9 @@ class EvaluationTests(unittest.TestCase):
         result = evaluate(load_jsonl("examples/training_tasks.jsonl"))
         self.assertEqual(result.passed, 3)
         self.assertEqual(result.accuracy, 1.0)
+        self.assertEqual(result.confusion_dict()[("request_approval", "request_approval")], 1)
+        self.assertEqual(result.confusion_dict()[("request_document_review", "request_document_review")], 1)
+        self.assertEqual(result.confusion_dict()[("refuse_action", "refuse_action")], 1)
 
 
 if __name__ == "__main__":
