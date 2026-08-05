@@ -10,6 +10,19 @@ from .model import TLMResponse
 from .prompt import format_prompt
 
 
+def clean_model_output(output: str) -> str:
+    """Remove known inference telemetry from text-only local model output."""
+    ignored_prefixes = (
+        "qwen config:",
+        "prompt_tokens=",
+        "timing:",
+        "generated_tokens=",
+    )
+    lines = [line.strip() for line in output.splitlines()]
+    useful = [line for line in lines if line and not line.lower().startswith(ignored_prefixes)]
+    return "\n".join(useful).strip()
+
+
 @dataclass(frozen=True)
 class ProcessTLMBackend:
     command: tuple[str, ...]
@@ -26,4 +39,4 @@ class ProcessTLMBackend:
         if completed.returncode != 0:
             detail = completed.stderr.strip() or f"exit code {completed.returncode}"
             raise RuntimeError(f"local model failed: {detail}")
-        return TLMResponse(completed.stdout.strip(), 0.0, context.references)
+        return TLMResponse(clean_model_output(completed.stdout), 0.0, context.references)
