@@ -97,6 +97,14 @@ python3 -m src.supplychain_tlm.cli examples/shipment_bundle.json \
   --audit audit/workflow.jsonl
 ```
 
+For a complete presentation-ready local PoC, run:
+
+```bash
+./scripts/demo.sh
+```
+
+This uses the sample shipment and a dry-run ERP connector; it does not contact SAP, Oracle, WMS, or any external service.
+
 The CLI uses a fake ERP connector for development. It does not modify SAP, Oracle, email, or any external system.
 
 ## Baseline OCR-text extraction
