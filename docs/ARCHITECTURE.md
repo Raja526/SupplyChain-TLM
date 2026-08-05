@@ -1,0 +1,55 @@
+# SupplyChain-TLM architecture
+
+## Objective
+
+Build a compact model and agent runtime that can understand supply-chain documents, explain discrepancies, and propose next actions while keeping external side effects behind explicit tools and approvals.
+
+## Layers
+
+### 1. Document intelligence
+
+Inputs include invoices, purchase orders, packing lists, bills of lading, certificates, and customs documents. This layer performs OCR, classification, field extraction, table extraction, normalization, and provenance tracking.
+
+### 2. Shared SupplyChain-TLM
+
+The model provides logistics language understanding, document-grounded question answering, discrepancy explanations, and structured reasoning support. It should not directly call SAP, send email, execute SQL, or mutate workflows.
+
+### 3. Domain adapters
+
+Adapters specialize the shared model by business capability rather than by isolated document type:
+
+- Financial: invoices, purchase orders, currency, tax, payment terms.
+- Shipping: bills of lading, containers, vessels, voyages, carriers.
+- Customs: HS codes, tariffs, duties, certificates, Incoterms.
+- Warehouse: goods receipt, delivery notes, inventory, bins, pick lists.
+- Compliance: dangerous goods, sanctions, export controls, restrictions.
+
+The first implementation can use deterministic routing and prompt/schema adapters. LoRA or sparse experts can be evaluated later after a shared baseline exists.
+
+### 4. Planner and workflow manager
+
+The planner converts validated facts and a user goal into a proposed sequence of steps. Every action should have a typed input, a reason, an authorization requirement, and an audit record.
+
+### 5. Tools
+
+Tools own side effects: OCR services, ERP APIs, databases, email, Teams/Slack, and search systems. The model proposes tool calls; the tool layer validates and executes them.
+
+## Safety boundary
+
+No external action should occur solely because a model generated text. The minimum control flow is:
+
+```text
+extract → validate → propose → approval/policy check → execute → audit
+```
+
+## Example decision
+
+“Can this shipment be released?” may require comparing the purchase order, invoice, packing list, bill of lading, HS code, Incoterm, insurance, and clearance status. This is why a shared model plus cross-document context is preferable to one model per document type.
+
+## CPU-first constraints
+
+- Start with a compact shared model, approximately 300M–700M parameters.
+- Keep schemas, rules, and tool contracts deterministic.
+- Measure prompt latency, decode speed, memory use, and extraction accuracy separately.
+- Prefer retrieval and adapters over duplicating full models.
+- Keep model weights and customer documents outside source control.
