@@ -5,7 +5,8 @@ from __future__ import annotations
 import argparse
 
 from .ingest import load_bundle
-from .tools import ApprovalGate, FakeERPTool, JsonlAuditLog, ToolPolicy
+from .erp import DryRunERPClient, ERPToolAdapter
+from .tools import ApprovalGate, JsonlAuditLog, ToolPolicy
 from .workflow import ReleaseWorkflow
 
 
@@ -18,8 +19,9 @@ def main(argv: list[str] | None = None) -> int:
 
     bundle = load_bundle(args.bundle)
     audit = JsonlAuditLog(args.audit)
-    policy = ToolPolicy(frozenset({"fake_erp"}), frozenset({"release_shipment"}), "procurement_manager")
-    workflow = ReleaseWorkflow(ApprovalGate(audit=audit, policy=policy), FakeERPTool())
+    erp = ERPToolAdapter(DryRunERPClient())
+    policy = ToolPolicy(frozenset({erp.name}), frozenset({"release_shipment"}), "procurement_manager")
+    workflow = ReleaseWorkflow(ApprovalGate(audit=audit, policy=policy), erp)
 
     if not args.approve_as:
         result = workflow.prepare(bundle)

@@ -22,7 +22,7 @@ class CLITests(unittest.TestCase):
             output = StringIO()
             with redirect_stdout(output):
                 self.assertEqual(main([self.bundle, "--approve-as", "procurement_manager", "--audit", str(audit)]), 0)
-            self.assertIn("tool_result: released:SHIP-100", output.getvalue())
+            self.assertIn("tool_result: dry-run:release:SHIP-100:PO-100", output.getvalue())
             self.assertEqual(len(audit.read_text(encoding="utf-8").splitlines()), 3)
 
 
