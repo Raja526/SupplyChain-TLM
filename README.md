@@ -275,6 +275,14 @@ Benchmark the current backend:
 python3 -m src.supplychain_tlm.benchmark examples/training_tasks.jsonl
 ```
 
+Benchmark a local CPU executable through the same prompt path:
+
+```bash
+python3 -m src.supplychain_tlm.benchmark \
+  examples/training_tasks.jsonl \
+  --command scripts/qwen_chat_backend.sh --timeout 180
+```
+
 The same harness can later compare a real CPU inference backend by passing it to the benchmark function.
 
 `build_release_plan()` exposes the autonomous workflow as explicit states: validation, retrieval, human review, approval, and execution. This is a plan only; it does not perform the final action.

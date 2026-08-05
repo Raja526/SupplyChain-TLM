@@ -10,6 +10,7 @@ from .context import DecisionContext
 from .dataset import load_jsonl
 from .evaluation import context_from_example
 from .model import RuleBasedSupplyChainTLM, TLMBackend
+from .process_backend import ProcessTLMBackend
 
 
 @dataclass(frozen=True)
@@ -37,9 +38,12 @@ def benchmark(contexts: tuple[DecisionContext, ...], backend: TLMBackend | None 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Benchmark a SupplyChain-TLM backend")
     parser.add_argument("dataset")
+    parser.add_argument("--command", nargs="+", help="local backend executable and arguments")
+    parser.add_argument("--timeout", type=float, default=180.0)
     args = parser.parse_args(argv)
     contexts = tuple(context_from_example(example) for example in load_jsonl(args.dataset))
-    result = benchmark(contexts)
+    backend = ProcessTLMBackend(tuple(args.command), timeout_seconds=args.timeout) if args.command else None
+    result = benchmark(contexts, backend)
     print(f"samples: {result.samples}")
     print(f"elapsed_seconds: {result.elapsed_seconds:.6f}")
     print(f"average_ms: {result.average_milliseconds:.3f}")
