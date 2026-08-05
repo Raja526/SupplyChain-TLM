@@ -236,6 +236,8 @@ python3 -m src.supplychain_tlm.train \
 
 Start with a small model and evaluate its safety-label confusion before attempting a larger checkpoint or CPU fine-tuning run.
 
+Run a local Transformers checkpoint through the evaluator with `python3 scripts/hf_chat_backend.py /tmp/tiny-supplychain --max-new 16` as the backend command.
+
 Validate a local checkpoint without loading model weights:
 
 ```bash
