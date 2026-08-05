@@ -61,6 +61,8 @@ The JSON loader performs schema conversion only. It does not trust the extracted
 
 `src/supplychain_tlm/tools.py` defines the next boundary: tools require an explicit approval record, an idempotency key, and audit events. `FakeERPTool` is only a test double; it does not connect to a real ERP.
 
+Tool policies can restrict allowed tool names, operations, and approver roles. Completed idempotency keys cannot be executed again.
+
 ## Roadmap
 
 1. Document schemas and deterministic validation.

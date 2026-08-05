@@ -39,6 +39,22 @@ class EnterpriseTool(Protocol):
         """Perform one already-authorized, idempotent operation."""
 
 
+@dataclass(frozen=True)
+class ToolPolicy:
+    allowed_tools: frozenset[str]
+    allowed_operations: frozenset[str]
+    required_approver: str
+
+    def check(self, tool: EnterpriseTool, call: ToolCall, approval: Approval) -> str | None:
+        if tool.name not in self.allowed_tools:
+            return f"tool is not allowed by policy: {tool.name}"
+        if call.operation not in self.allowed_operations:
+            return f"operation is not allowed by policy: {call.operation}"
+        if approval.approver != self.required_approver:
+            return f"approval requires {self.required_approver}"
+        return None
+
+
 class AuditLog:
     def __init__(self) -> None:
         self.events: list[AuditEvent] = []
@@ -50,6 +66,8 @@ class AuditLog:
 @dataclass
 class ApprovalGate:
     audit: AuditLog = field(default_factory=AuditLog)
+    policy: ToolPolicy | None = None
+    _completed_keys: set[str] = field(default_factory=set, init=False)
 
     def approve(self, proposal_id: str, approver: str, comment: str = "") -> Approval:
         approval = Approval(approver, "approved", proposal_id, comment)
@@ -62,8 +80,17 @@ class ApprovalGate:
         if approval is None or approval.decision != "approved":
             self.audit.record("blocked_tool_call", call_id, f"tool={tool.name} operation={call.operation}")
             raise PermissionError("tool call requires an approved approval record")
+        if self.policy is not None:
+            policy_error = self.policy.check(tool, call, approval)
+            if policy_error:
+                self.audit.record("blocked_tool_call", call_id, policy_error)
+                raise PermissionError(policy_error)
+        if call_id in self._completed_keys:
+            self.audit.record("duplicate_tool_call", call_id, f"tool={tool.name} operation={call.operation}")
+            raise RuntimeError(f"idempotency key already completed: {call_id}")
         self.audit.record("tool_call_started", call_id, f"tool={tool.name} operation={call.operation}")
         result = tool.execute(call)
+        self._completed_keys.add(call_id)
         self.audit.record("tool_call_completed", call_id, f"result={result}")
         return result
 

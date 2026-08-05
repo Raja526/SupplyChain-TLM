@@ -46,6 +46,8 @@ The current planner implements only the `propose` stage. Enterprise connectors a
 
 The tool contract now requires all four controls: a typed operation, an idempotency key, an approval record, and audit events for blocked, started, and completed calls.
 
+Policy checks occur before execution. A completed idempotency key is rejected on reuse, preventing accidental duplicate ERP mutations during retries.
+
 ## Example decision
 
 “Can this shipment be released?” may require comparing the purchase order, invoice, packing list, bill of lading, HS code, Incoterm, insurance, and clearance status. This is why a shared model plus cross-document context is preferable to one model per document type.
