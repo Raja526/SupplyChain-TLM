@@ -66,6 +66,8 @@ The decision-context layer is the planned interface between these components and
 
 The context has a stable JSON representation for prompt construction, evaluation fixtures, and later model-serving APIs.
 
+The TLM backend receives `DecisionContext` and returns an answer, confidence, references, and a suggested action. Suggested actions remain proposals; only the planner, approval gate, and tool policy can authorize side effects.
+
 ## Example decision
 
 “Can this shipment be released?” may require comparing the purchase order, invoice, packing list, bill of lading, HS code, Incoterm, insurance, and clearance status. This is why a shared model plus cross-document context is preferable to one model per document type.

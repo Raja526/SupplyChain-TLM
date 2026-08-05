@@ -129,6 +129,10 @@ python3 -m src.supplychain_tlm.context_cli \
   "Can this shipment be released?"
 ```
 
+## TLM integration boundary
+
+`TLMBackend` defines the future model interface. The included `RuleBasedSupplyChainTLM` is only a deterministic baseline: it explains validation results and suggests review or approval, but it cannot execute tools.
+
 ## Roadmap
 
 1. Document schemas and deterministic validation.
