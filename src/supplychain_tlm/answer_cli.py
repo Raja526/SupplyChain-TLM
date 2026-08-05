@@ -19,14 +19,18 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--fast-path", action="store_true", help="use deterministic validation response without invoking the local model")
     parser.add_argument("--fallback-fast-path", action="store_true", help="fall back to deterministic validation if the local model fails or times out")
     args = parser.parse_args(argv)
-    backend = RuleBasedSupplyChainTLM() if args.fast_path or not args.command else ProcessTLMBackend(tuple(args.command), timeout_seconds=args.timeout)
+    fast_path = args.fast_path or not args.command
+    backend = RuleBasedSupplyChainTLM() if fast_path else ProcessTLMBackend(tuple(args.command), timeout_seconds=args.timeout)
     context = build_decision_context(args.request, load_bundle(args.bundle))
+    mode = "deterministic" if fast_path else "local_model"
     try:
         response = backend.answer(context)
     except (RuntimeError, TimeoutError):
         if not args.fallback_fast_path:
             raise
         response = RuleBasedSupplyChainTLM().answer(context)
+        mode = "deterministic_fallback"
+    print(f"mode: {mode}")
     print(f"answer: {response.answer}")
     print(f"confidence: {response.confidence:.2f}")
     print(f"suggested_action: {response.suggested_action}")
