@@ -65,6 +65,10 @@ Tool policies can restrict allowed tool names, operations, and approver roles. C
 
 `JsonlAuditLog` provides append-only audit persistence without a database dependency. It can be reloaded after a process restart for inspection or later migration into an enterprise audit store.
 
+## Run the workflow pieces together
+
+`ReleaseWorkflow` coordinates the local path from a typed bundle to a guarded fake ERP call. Invalid bundles stop before approval; valid bundles require an approver and then execute the test double.
+
 ## Roadmap
 
 1. Document schemas and deterministic validation.
