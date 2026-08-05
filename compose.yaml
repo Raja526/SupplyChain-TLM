@@ -1,0 +1,9 @@
+services:
+  supplychain-tlm:
+    build: .
+    image: supplychain-tlm:local
+    ports:
+      - "8080:8080"
+    environment:
+      SUPPLYCHAIN_SERVICE_TOKEN: "${SUPPLYCHAIN_SERVICE_TOKEN:?set SUPPLYCHAIN_SERVICE_TOKEN}"
+    restart: unless-stopped

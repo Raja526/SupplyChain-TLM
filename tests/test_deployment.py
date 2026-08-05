@@ -14,6 +14,11 @@ class DeploymentTests(unittest.TestCase):
         self.assertIn("*.safetensors", ignored)
         self.assertIn("audit", ignored)
 
+    def test_compose_requires_service_token(self):
+        compose = Path("compose.yaml").read_text(encoding="utf-8")
+        self.assertIn("SUPPLYCHAIN_SERVICE_TOKEN", compose)
+        self.assertIn("restart: unless-stopped", compose)
+
 
 if __name__ == "__main__":
     unittest.main()
