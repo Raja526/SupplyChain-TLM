@@ -370,6 +370,34 @@ python3 -m src.supplychain_tlm.review_cli --queue review/review.jsonl list
 python3 -m src.supplychain_tlm.review_cli --queue review/review.jsonl resolve ITEM_ID analyst-1 corrected
 ```
 
+## Dataset coverage and model evaluation
+
+Inspect domain and safety-label coverage before training:
+
+```bash
+python3 -m src.supplychain_tlm.dataset_report \
+  examples/training_tasks_extended.jsonl --json
+```
+
+Train a local Transformers checkpoint on answer tokens (the default):
+
+```bash
+python3 -m src.supplychain_tlm.train \
+  /path/to/local-model examples/training_tasks_extended.jsonl \
+  /tmp/supplychain-checkpoint --epochs 3 --device cpu
+```
+
+Evaluate both safety behavior and answer content. Set a content threshold to prevent a weak checkpoint from passing solely on deterministic safety metadata:
+
+```bash
+python3 -m src.supplychain_tlm.evaluation \
+  examples/training_tasks_extended.jsonl \
+  --command python3 scripts/hf_chat_backend.py /tmp/supplychain-checkpoint \
+  --min-content-score 0.50 --json
+```
+
+The content score is a lightweight token-overlap diagnostic, not a substitute for expert review. The repository CI workflow runs compilation, whitespace checks, dataset reporting, and the complete test suite on pushes and pull requests.
+
 ## Roadmap
 
 1. Document schemas and deterministic validation.
