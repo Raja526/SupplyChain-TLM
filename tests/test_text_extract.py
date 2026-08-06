@@ -43,6 +43,17 @@ class TextExtractionTests(unittest.TestCase):
         result = extract_fields("PACKING LIST\nPO No: PO-1")
         self.assertEqual(result.document_type, "packing_list")
 
+    def test_synthetic_supplychain_fields(self):
+        result = extract_fields(
+            "COMMERCIAL INVOICE\nInvoice Number: INV-100\nPO Number: PO-100\n"
+            "SKU: SKU-1\nQuantity: 10\nTotal Payable: 1000.00"
+        )
+        self.assertEqual(result.document_type, "invoice")
+        self.assertEqual(result.fields["po_number"], "PO-100")
+        self.assertEqual(result.fields["sku"], "SKU-1")
+        self.assertEqual(result.fields["quantity"], "10")
+        self.assertFalse(result.needs_human_review)
+
 
 if __name__ == "__main__":
     unittest.main()

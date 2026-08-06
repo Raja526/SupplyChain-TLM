@@ -43,6 +43,9 @@ _TEMPLATE_MARKERS = (
 
 def classify_document(text: str) -> tuple[str, float]:
     normalized = text.lower()
+    for phrase, kind in (("commercial invoice", "invoice"), ("packing list", "packing_list"), ("purchase order", "purchase_order"), ("bill of lading", "bill_of_lading")):
+        if phrase in normalized:
+            return kind, 0.85
     scores = {kind: sum(term in normalized for term in terms) for kind, terms in _TYPE_TERMS.items()}
     document_type, score = max(scores.items(), key=lambda item: (item[1], _TYPE_PRIORITY[item[0]]))
     if score == 0:
@@ -61,11 +64,13 @@ def extract_fields(text: str, document_type: str | None = None) -> ExtractionRes
     field_confidence: dict[str, float] = {}
     patterns = {
         "document_id": r"(?:invoice\s*(?:number|no\.?|#)|document\s*(?:number|no\.?|id)|bol\s*(?:number|no\.?)|b/l\s*(?:number|no\.?)|statement\s*number)\s*[:#-]?\s*([A-Z0-9][A-Z0-9-]+)",
-        "po_number": r"(?:purchase order|po)\s*(?:number|no\.?|#)?\s*[:#-]?\s*(PO[-\s]?[A-Z0-9-]+)",
+        "po_number": r"(?im)^[ \t]*(?:purchase order|po)[ \t]*(?:number|no\.?|#)[ \t]*:[ \t]*(PO[-\s]?[A-Z0-9-]+)",
         "shipment_id": r"(?:shipment|booking)\s*(?:id|number|no\.?)?\s*[:#-]?\s*(SHIP[-\s]?[A-Z0-9-]+)",
         "currency": r"\b(USD|EUR|GBP|INR)\b",
         "total_amount": r"(?im)^[ \t]*(?:total(?:[ \t]+(?:payable|amount|po[ \t]+amount))?|amount[ \t]+due|invoice[ \t]+total)[ \t]*[:#-]?[ \t]*[$€£₹]?[ \t]*([0-9][0-9,]*(?:\.\d{1,2})?)",
         "container_number": r"(?:container number|container no\.?|container)\s*[:#-]?\s*([A-Z]{4}\d{7})",
+        "sku": r"(?im)^[ \t]*SKU[ \t]*:[ \t]*([A-Z0-9][A-Z0-9-]*)",
+        "quantity": r"(?im)^[ \t]*Quantity[ \t]*:[ \t]*([0-9]+(?:\.\d+)?)",
     }
     for name, pattern in patterns.items():
         value = _first(pattern, text)
@@ -84,6 +89,11 @@ def extract_fields(text: str, document_type: str | None = None) -> ExtractionRes
         if payable:
             fields["total_amount"] = payable.replace(",", "")
             field_confidence["total_amount"] = 0.95
+    if kind == "packing_list":
+        packing_number = _first(r"packing\s+list\s+number\s*[:#-]?\s*([A-Z0-9][A-Z0-9-]*)", text)
+        if packing_number:
+            fields["document_id"] = packing_number
+            field_confidence["document_id"] = 0.95
     normalized = text.lower()
     warnings_list = [] if fields else ["no supported fields found"]
     if any(marker in normalized for marker in _TEMPLATE_MARKERS):
