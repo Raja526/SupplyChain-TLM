@@ -20,7 +20,12 @@ class ExtractionResult:
 
     @property
     def needs_human_review(self) -> bool:
-        return self.document_type == "unknown" or bool(self.warnings) or any(value < 0.8 for value in self.field_confidence.values())
+        return (
+            self.document_type == "unknown"
+            or self.confidence < 0.8
+            or bool(self.warnings)
+            or any(value < 0.8 for value in self.field_confidence.values())
+        )
 
 
 _TYPE_TERMS = {

@@ -20,6 +20,11 @@ class TextExtractionTests(unittest.TestCase):
         self.assertIn("document type could not be classified", result.warnings)
         self.assertTrue(result.needs_human_review)
 
+    def test_low_document_confidence_requires_review(self):
+        result = extract_fields("Invoice\nTotal: 100.00")
+        self.assertLess(result.confidence, 0.8)
+        self.assertTrue(result.needs_human_review)
+
 
 if __name__ == "__main__":
     unittest.main()
