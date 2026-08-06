@@ -191,6 +191,19 @@ The wrapper passes text to the Qwen executable only. Approval and enterprise too
 
 The wrapper defaults `QWEN_CHAT=1`, `QWEN_THINKING=0`, and `QWEN_CACHE_WEIGHTS=1` for conversational, predictable, lower-latency CPU responses. Override these variables when using a larger checkpoint or constrained memory.
 
+## Run through TinyAgentOS
+
+The optional adapter exposes the domain router, deterministic validator, TLM
+answer boundary, and approval-gated release tool through TinyAgentOS services.
+Set `TINYAGENTOS_DIR` if TinyAgentOS is not in `~/TinyAgentOS`, then run:
+
+```bash
+TINYAGENTOS_DIR=/home/raja/TinyAgentOS ./scripts/tinyagentos_demo.sh
+```
+
+The demo shows a review decision, an approval refusal, and a controlled local
+dry-run. It does not contact SAP, Oracle, WMS, or any external system.
+
 For CPU performance, keep the validated FP32/OpenBLAS path as the default:
 
 ```bash
