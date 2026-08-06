@@ -49,6 +49,16 @@ class TinyAgentOSPluginTests(unittest.TestCase):
         self.assertEqual(result.output["answer"]["suggested_action"], "refuse_action")
         self.assertEqual(result.output["plan"]["proposals"][0]["status"], "proposed")
 
+    def test_optional_model_is_advisory_only(self):
+        class FakeModel:
+            def generate(self, context):
+                return "model suggestion: release"
+
+        agent = build_agent("Can this shipment be released?", self.bundle_dict, model=FakeModel())
+        result = agent.run("evaluate shipment")
+        self.assertEqual(result.output["model_explanation"], "model suggestion: release")
+        self.assertEqual(result.output["plan"]["proposals"][0]["required_approval"], "procurement_manager")
+
 
 if __name__ == "__main__":
     unittest.main()

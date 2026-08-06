@@ -100,14 +100,26 @@ class SupplyChainTLMPlugin:
         kernel.registry.register("supplychain.tools", tools)
 
 
-def build_agent(request: str, bundle: dict[str, Any], *, approved: bool = True) -> Any:
-    """Build a TinyAgentOS pipeline whose output is the domain answer."""
+def build_agent(request: str, bundle: dict[str, Any], *, approved: bool = True, model: Any | None = None) -> Any:
+    """Build a pipeline with an optional CPU model explanation.
+
+    The model output is returned as advisory text only. Deterministic answer
+    and planner fields are produced independently and remain authoritative.
+    """
     pipeline = Pipeline()
+
+    if model is not None:
+        def explain(context: Any) -> Any:
+            context.variables["model_explanation"] = model.generate(context)
+            return context
+
+        pipeline.add_stage(CallableStage(explain))
 
     def decide(context: Any) -> Any:
         context.variables["output"] = {
             "answer": answer_request(request, bundle, approved=approved),
             "plan": plan_release(bundle),
+            "model_explanation": context.variables.get("model_explanation"),
         }
         return context
 
