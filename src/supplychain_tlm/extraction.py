@@ -77,6 +77,8 @@ class PaddleOCRProvider:
 
     ocr: Any | None = None
     language: str = "en"
+    enable_mkldnn: bool = False
+    cpu_threads: int = 4
 
     def _engine(self) -> Any:
         if self.ocr is not None:
@@ -87,9 +89,12 @@ class PaddleOCRProvider:
             raise RuntimeError("PaddleOCR is not installed; install it to use PaddleOCRProvider") from error
         self.ocr = PaddleOCR(
             lang=self.language,
+            engine="paddle",
             use_doc_orientation_classify=False,
             use_doc_unwarping=False,
             use_textline_orientation=False,
+            enable_mkldnn=self.enable_mkldnn,
+            cpu_threads=self.cpu_threads,
         )
         return self.ocr
 

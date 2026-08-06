@@ -28,6 +28,7 @@ class ExtractionProviderTests(unittest.TestCase):
 
         result = PaddleOCRProvider(ocr=FakeOCR()).extract("invoice.png")
         self.assertEqual(result.pages, (OCRPage(1, "Invoice INV-1\nTotal 1000"),))
+        self.assertFalse(PaddleOCRProvider().enable_mkldnn)
 
     def test_paddleocr_missing_dependency_is_clear(self):
         provider = PaddleOCRProvider()
