@@ -61,12 +61,19 @@ def answer_payload(bundle_path: str, request: str) -> dict[str, Any]:
     }
 
 
-def decision_payload(bundle_path: str, request: str, *, approved: bool = True) -> dict[str, Any]:
-    """Run the domain answer and planner through TinyAgentOS, without tools."""
+def decision_payload(bundle_source: str | dict[str, Any], request: str, *, approved: bool = True) -> dict[str, Any]:
+    """Run the domain answer and planner through TinyAgentOS, without tools.
+
+    API callers may provide an inline bundle object; path input remains useful
+    for the local CLI/demo and is not required for remote integrations.
+    """
     from .tinyagentos_plugin import build_agent
 
-    with open(bundle_path, encoding="utf-8") as stream:
-        bundle = json.load(stream)
+    if isinstance(bundle_source, dict):
+        bundle = bundle_source
+    else:
+        with open(bundle_source, encoding="utf-8") as stream:
+            bundle = json.load(stream)
     result = build_agent(request, bundle, approved=approved).run(request)
     return {"mode": "tinyagentos_pipeline", **result.output}
 
@@ -92,7 +99,7 @@ def handle_json(payload: str) -> str:
         result = answer_payload(str(request["bundle"]), str(request["request"]))
     elif request.get("operation") == "decision":
         result = decision_payload(
-            str(request["bundle"]),
+            request["bundle"],
             str(request["request"]),
             approved=bool(request.get("approved", True)),
         )

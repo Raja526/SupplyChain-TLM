@@ -376,6 +376,9 @@ curl -s http://127.0.0.1:8080/v1/request \
   -d '{"operation":"decision","bundle":"examples/shipment_bundle.json","request":"Can this shipment be released?","approved":false}'
 ```
 
+For remote callers, send the parsed bundle as the `bundle` JSON object instead
+of exposing a server-side filesystem path.
+
 The same request can be demonstrated with one command:
 
 ```bash

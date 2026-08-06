@@ -34,6 +34,18 @@ class ServiceTests(unittest.TestCase):
         self.assertEqual(payload["answer"]["suggested_action"], "refuse_action")
         self.assertEqual(payload["plan"]["proposals"][0]["status"], "proposed")
 
+    def test_tinyagentos_decision_accepts_inline_bundle(self):
+        with open(self.bundle, encoding="utf-8") as stream:
+            bundle = json.load(stream)
+        payload = json.loads(handle_json(json.dumps({
+            "operation": "decision",
+            "bundle": bundle,
+            "request": "Can this shipment be released?",
+            "approved": False,
+        })))
+        self.assertEqual(payload["mode"], "tinyagentos_pipeline")
+        self.assertEqual(payload["answer"]["suggested_action"], "refuse_action")
+
     def test_unknown_operation_is_rejected(self):
         with self.assertRaisesRegex(ValueError, "operation must be answer, decision, or release"):
             handle_json(json.dumps({"operation": "execute"}))
