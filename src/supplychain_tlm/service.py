@@ -61,6 +61,16 @@ def answer_payload(bundle_path: str, request: str) -> dict[str, Any]:
     }
 
 
+def decision_payload(bundle_path: str, request: str, *, approved: bool = True) -> dict[str, Any]:
+    """Run the domain answer and planner through TinyAgentOS, without tools."""
+    from .tinyagentos_plugin import build_agent
+
+    with open(bundle_path, encoding="utf-8") as stream:
+        bundle = json.load(stream)
+    result = build_agent(request, bundle, approved=approved).run(request)
+    return {"mode": "tinyagentos_pipeline", **result.output}
+
+
 def release_payload(bundle_path: str, approver: str | None = None, audit_path: str = "audit/service.jsonl") -> dict[str, Any]:
     """Prepare or execute a safe dry-run release through the approval gate."""
     audit = JsonlAuditLog(audit_path)
@@ -80,10 +90,16 @@ def handle_json(payload: str) -> str:
     request = json.loads(payload)
     if request.get("operation") == "answer":
         result = answer_payload(str(request["bundle"]), str(request["request"]))
+    elif request.get("operation") == "decision":
+        result = decision_payload(
+            str(request["bundle"]),
+            str(request["request"]),
+            approved=bool(request.get("approved", True)),
+        )
     elif request.get("operation") == "release":
         result = release_payload(str(request["bundle"]), request.get("approver"), str(request.get("audit", "audit/service.jsonl")))
     else:
-        raise ValueError("operation must be answer or release")
+        raise ValueError("operation must be answer, decision, or release")
     return json.dumps(result, sort_keys=True)
 
 

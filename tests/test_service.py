@@ -8,7 +8,7 @@ from tempfile import TemporaryDirectory
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
-from src.supplychain_tlm.service import AgentRequestHandler, answer_payload, handle_json, release_payload, serve
+from src.supplychain_tlm.service import AgentRequestHandler, answer_payload, decision_payload, handle_json, release_payload, serve
 
 
 class ServiceTests(unittest.TestCase):
@@ -28,8 +28,14 @@ class ServiceTests(unittest.TestCase):
         payload = handle_json(json.dumps({"operation": "answer", "bundle": self.bundle, "request": "status"}))
         self.assertEqual(json.loads(payload)["mode"], "deterministic")
 
+    def test_tinyagentos_decision_dispatch(self):
+        payload = decision_payload(self.bundle, "Can this shipment be released?", approved=False)
+        self.assertEqual(payload["mode"], "tinyagentos_pipeline")
+        self.assertEqual(payload["answer"]["suggested_action"], "refuse_action")
+        self.assertEqual(payload["plan"]["proposals"][0]["status"], "proposed")
+
     def test_unknown_operation_is_rejected(self):
-        with self.assertRaisesRegex(ValueError, "operation must be answer or release"):
+        with self.assertRaisesRegex(ValueError, "operation must be answer, decision, or release"):
             handle_json(json.dumps({"operation": "execute"}))
 
     def test_http_endpoint_dispatches_json(self):
