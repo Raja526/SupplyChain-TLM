@@ -356,7 +356,7 @@ Add `--strict` to fail the command when OCR output needs human review.
 
 `src/supplychain_tlm/ocr_dataset.py` validates an annotated OCR manifest before ingestion. Every item must have a unique ID, existing source file, supported document type, train/validation/test split, and structured field annotations. The same source path cannot occur in multiple splits. Run `python3 -m src.supplychain_tlm.ocr_dataset manifest.jsonl` to report coverage.
 
-`src/supplychain_tlm/service.py` provides a small embeddable JSON service boundary for deterministic answers and approval-gated dry-run releases. It accepts only the `answer` and `release` operations and never executes arbitrary commands supplied by a caller.
+`src/supplychain_tlm/service.py` provides a small embeddable JSON service boundary for deterministic answers, TinyAgentOS pipeline decisions, and approval-gated dry-run releases. It accepts only the `answer`, `decision`, and `release` operations and never executes arbitrary commands supplied by a caller.
 
 Run its optional localhost transport with:
 
@@ -365,6 +365,16 @@ python3 -m src.supplychain_tlm.service --host 127.0.0.1 --port 8080
 ```
 
 Send `POST /v1/request` with a JSON body such as `{"operation":"answer","bundle":"examples/shipment_bundle.json","request":"Can this shipment be released?"}`.
+
+With TinyAgentOS available on `PYTHONPATH`, the `decision` operation runs the
+domain answer and validation-gated planner through a TinyAgentOS pipeline. It
+does not execute a release tool:
+
+```bash
+curl -s http://127.0.0.1:8080/v1/request \
+  -H 'Content-Type: application/json' \
+  -d '{"operation":"decision","bundle":"examples/shipment_bundle.json","request":"Can this shipment be released?","approved":false}'
+```
 
 Use `GET /healthz` for a lightweight readiness check; it does not load a model or execute an ERP operation.
 Use `GET /metrics` for Prometheus-compatible request, response, and uptime counters.
