@@ -33,6 +33,16 @@ class TextExtractionTests(unittest.TestCase):
         self.assertEqual(result.fields["document_id"], "436512522823")
         self.assertEqual(result.fields["total_amount"], "1060.82")
 
+    def test_blank_template_is_reviewed_without_false_document_id(self):
+        result = extract_fields("COMMERCIAL INVOICE\nCompany Name\nInvoice Number\nPage X of X")
+        self.assertNotIn("document_id", result.fields)
+        self.assertIn("document contains template placeholders", result.warnings)
+        self.assertTrue(result.needs_human_review)
+
+    def test_packing_list_wins_tie_against_po_terms(self):
+        result = extract_fields("PACKING LIST\nPO No: PO-1")
+        self.assertEqual(result.document_type, "packing_list")
+
 
 if __name__ == "__main__":
     unittest.main()
