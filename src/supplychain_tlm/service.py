@@ -88,7 +88,15 @@ def release_payload(bundle_path: str, approver: str | None = None, audit_path: s
     if not approver:
         result = workflow.prepare(bundle)
         return {"mode": "review_only", "validation_passed": result.plan.validation_passed, "proposal": asdict(result.plan.proposals[0]), "audit": audit_path}
-    result = workflow.approve_and_execute(bundle, approver)
+    try:
+        result = workflow.approve_and_execute(bundle, approver)
+    except RuntimeError as error:
+        return {
+            "mode": "blocked",
+            "validation_passed": True,
+            "reason": str(error),
+            "audit": audit_path,
+        }
     return {"mode": "approved_dry_run" if result.tool_result else "blocked", "validation_passed": result.plan.validation_passed, "tool_result": result.tool_result, "audit": audit_path}
 
 

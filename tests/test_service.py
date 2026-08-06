@@ -24,6 +24,15 @@ class ServiceTests(unittest.TestCase):
             result = release_payload(self.bundle, audit_path=str(Path(directory) / "audit.jsonl"))
             self.assertEqual(result["mode"], "review_only")
 
+    def test_duplicate_release_returns_structured_block(self):
+        with TemporaryDirectory() as directory:
+            audit = str(Path(directory) / "audit.jsonl")
+            first = release_payload(self.bundle, "procurement_manager", audit)
+            second = release_payload(self.bundle, "procurement_manager", audit)
+            self.assertEqual(first["mode"], "approved_dry_run")
+            self.assertEqual(second["mode"], "blocked")
+            self.assertIn("idempotency key already completed", second["reason"])
+
     def test_json_dispatch(self):
         payload = handle_json(json.dumps({"operation": "answer", "bundle": self.bundle, "request": "status"}))
         self.assertEqual(json.loads(payload)["mode"], "deterministic")
