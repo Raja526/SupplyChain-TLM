@@ -13,6 +13,12 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+      - name: Check out TinyAgentOS integration dependency
+        uses: actions/checkout@v4
+        with:
+          repository: Raja526/TinyAgentOS
+          path: TinyAgentOS
+          ref: develop
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -23,4 +29,6 @@ jobs:
       - name: Report dataset coverage
         run: python -m src.supplychain_tlm.dataset_report examples/training_tasks_extended.jsonl --json
       - name: Run tests
+        env:
+          PYTHONPATH: ${{ github.workspace }}/TinyAgentOS
         run: python -m unittest discover -s tests -v
