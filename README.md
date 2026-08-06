@@ -376,6 +376,12 @@ curl -s http://127.0.0.1:8080/v1/request \
   -d '{"operation":"decision","bundle":"examples/shipment_bundle.json","request":"Can this shipment be released?","approved":false}'
 ```
 
+The same request can be demonstrated with one command:
+
+```bash
+TINYAGENTOS_DIR=/home/raja/TinyAgentOS ./scripts/tinyagentos_service_demo.sh
+```
+
 Use `GET /healthz` for a lightweight readiness check; it does not load a model or execute an ERP operation.
 Use `GET /metrics` for Prometheus-compatible request, response, and uptime counters.
 
