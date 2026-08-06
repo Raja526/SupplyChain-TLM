@@ -35,7 +35,10 @@ _TYPE_TERMS = {
     "bill_of_lading": ("bill of lading", "b/l", "container number", "vessel"),
 }
 _TYPE_PRIORITY = {"invoice": 2, "purchase_order": 3, "packing_list": 4, "bill_of_lading": 5}
-_TEMPLATE_MARKERS = ("[business name]", "[invoice number]", "[address]", "fill in", "page x of x", "company name")
+_TEMPLATE_MARKERS = (
+    "[business name]", "[invoice number]", "[address]", "fill in", "page x of x",
+    "company name", "(item description)", "(unit price)", "(total price)", "(total)",
+)
 
 
 def classify_document(text: str) -> tuple[str, float]:
@@ -61,7 +64,7 @@ def extract_fields(text: str, document_type: str | None = None) -> ExtractionRes
         "po_number": r"(?:purchase order|po)\s*(?:number|no\.?|#)?\s*[:#-]?\s*(PO[-\s]?[A-Z0-9-]+)",
         "shipment_id": r"(?:shipment|booking)\s*(?:id|number|no\.?)?\s*[:#-]?\s*(SHIP[-\s]?[A-Z0-9-]+)",
         "currency": r"\b(USD|EUR|GBP|INR)\b",
-        "total_amount": r"(?:total|amount due)\s*[:#-]?\s*[$€£₹]?\s*([0-9][0-9,]*(?:\.\d{1,2})?)",
+        "total_amount": r"(?im)^[ \t]*(?:total(?:[ \t]+(?:payable|amount|po[ \t]+amount))?|amount[ \t]+due|invoice[ \t]+total)[ \t]*[:#-]?[ \t]*[$€£₹]?[ \t]*([0-9][0-9,]*(?:\.\d{1,2})?)",
         "container_number": r"(?:container number|container no\.?|container)\s*[:#-]?\s*([A-Z]{4}\d{7})",
     }
     for name, pattern in patterns.items():
