@@ -3,7 +3,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
-from src.supplychain_tlm.extraction import OCRPage, OCRDocument, TesseractProvider
+from src.supplychain_tlm.extraction import OCRPage, OCRDocument, PaddleOCRProvider, TesseractProvider
 
 
 class ExtractionProviderTests(unittest.TestCase):
@@ -19,6 +19,21 @@ class ExtractionProviderTests(unittest.TestCase):
         with patch("src.supplychain_tlm.extraction.subprocess.run", return_value=completed):
             with self.assertRaisesRegex(RuntimeError, "bad image"):
                 TesseractProvider().extract("invoice.png")
+
+    def test_paddleocr_predict_results_become_pages(self):
+        class FakeOCR:
+            def predict(self, path):
+                self.path = path
+                return [{"res": {"rec_texts": ["Invoice INV-1", "Total 1000"]}}]
+
+        result = PaddleOCRProvider(ocr=FakeOCR()).extract("invoice.png")
+        self.assertEqual(result.pages, (OCRPage(1, "Invoice INV-1\nTotal 1000"),))
+
+    def test_paddleocr_missing_dependency_is_clear(self):
+        provider = PaddleOCRProvider()
+        with patch.dict("sys.modules", {"paddleocr": None}):
+            with self.assertRaisesRegex(RuntimeError, "PaddleOCR is not installed"):
+                provider.extract("invoice.png")
 
 
 if __name__ == "__main__":

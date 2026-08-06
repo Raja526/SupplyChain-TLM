@@ -7,9 +7,10 @@ interface around Tesseract, a service API, or a future local CPU model.
 from __future__ import annotations
 
 from dataclasses import dataclass
+import json
 from pathlib import Path
 import subprocess
-from typing import Protocol
+from typing import Any, Protocol
 
 
 @dataclass(frozen=True)
@@ -63,3 +64,65 @@ class TesseractProvider:
             detail = completed.stderr.strip() or f"exit code {completed.returncode}"
             raise RuntimeError(f"Tesseract OCR failed: {detail}")
         return OCRDocument(str(source), (OCRPage(1, completed.stdout),))
+
+
+@dataclass
+class PaddleOCRProvider:
+    """Optional local PaddleOCR adapter using the current ``predict`` API.
+
+    PaddleOCR is imported lazily so the core project remains installable
+    without the large OCR runtime. A test double can be supplied through
+    ``ocr``; production callers normally leave it as ``None``.
+    """
+
+    ocr: Any | None = None
+    language: str = "en"
+
+    def _engine(self) -> Any:
+        if self.ocr is not None:
+            return self.ocr
+        try:
+            from paddleocr import PaddleOCR
+        except ImportError as error:
+            raise RuntimeError("PaddleOCR is not installed; install it to use PaddleOCRProvider") from error
+        self.ocr = PaddleOCR(
+            lang=self.language,
+            use_doc_orientation_classify=False,
+            use_doc_unwarping=False,
+            use_textline_orientation=False,
+        )
+        return self.ocr
+
+    @staticmethod
+    def _payload(result: Any) -> Any:
+        value = getattr(result, "json", None)
+        if callable(value):
+            value = value()
+        if value is None:
+            value = result
+        if isinstance(value, str):
+            try:
+                return json.loads(value)
+            except json.JSONDecodeError:
+                return {"text": value}
+        return value
+
+    @classmethod
+    def _text(cls, result: Any) -> str:
+        payload = cls._payload(result)
+        if isinstance(payload, dict) and isinstance(payload.get("res"), dict):
+            payload = payload["res"]
+        if isinstance(payload, dict):
+            for key in ("rec_texts", "texts", "text"):
+                value = payload.get(key)
+                if isinstance(value, (list, tuple)):
+                    return "\n".join(str(item) for item in value if str(item).strip())
+                if isinstance(value, str):
+                    return value
+        return str(payload) if isinstance(payload, str) else ""
+
+    def extract(self, path: str | Path) -> OCRDocument:
+        source = Path(path)
+        results = self._engine().predict(str(source))
+        pages = tuple(OCRPage(index, self._text(result)) for index, result in enumerate(results, start=1))
+        return OCRDocument(str(source), pages)
