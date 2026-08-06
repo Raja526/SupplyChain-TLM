@@ -25,6 +25,14 @@ class TextExtractionTests(unittest.TestCase):
         self.assertLess(result.confidence, 0.8)
         self.assertTrue(result.needs_human_review)
 
+    def test_invoice_prefers_statement_number_and_total_payable(self):
+        result = extract_fields(
+            "Jio Bill\nStatement Number : 436512522823\n"
+            "Total Payable : 1,060.82\nTotal 899.00"
+        )
+        self.assertEqual(result.fields["document_id"], "436512522823")
+        self.assertEqual(result.fields["total_amount"], "1060.82")
+
 
 if __name__ == "__main__":
     unittest.main()
