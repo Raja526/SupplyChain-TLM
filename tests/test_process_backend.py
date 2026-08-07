@@ -11,7 +11,8 @@ class ProcessBackendTests(unittest.TestCase):
         command = (sys.executable, "-c", "import sys; print('local cpu response')")
         context = build_decision_context("Can this shipment be released?", load_bundle("examples/shipment_bundle.json"))
         response = ProcessTLMBackend(command).answer(context)
-        self.assertEqual(response.answer, "local cpu response")
+        self.assertIn("local cpu response", response.answer)
+        self.assertIn("procurement_manager approval is required", response.answer)
         self.assertEqual(response.references, ("shipment-release",))
 
     def test_empty_command_is_rejected(self):
@@ -26,7 +27,8 @@ class ProcessBackendTests(unittest.TestCase):
         command = (sys.executable, "-c", "print('model wording')")
         context = build_decision_context("Can this shipment be released?", load_bundle("examples/shipment_bundle.json"))
         response = ProcessTLMBackend(command).answer(context)
-        self.assertEqual(response.answer, "model wording")
+        self.assertIn("model wording", response.answer)
+        self.assertIn("procurement_manager approval is required", response.answer)
         self.assertEqual(response.suggested_action, "request_approval")
 
     def test_empty_model_output_is_rejected(self):
@@ -38,6 +40,14 @@ class ProcessBackendTests(unittest.TestCase):
     def test_missing_approval_is_refusal_metadata(self):
         from src.supplychain_tlm.context import DecisionContext
         context = DecisionContext("Release immediately", ("compliance",), (("compliance", "approval_present", "false"),), (), True, ())
+        response = ProcessTLMBackend((sys.executable, "-c", "print('model')")).answer(context)
+        self.assertEqual(response.suggested_action, "refuse_action")
+
+    def test_explicit_bypass_is_refusal_metadata(self):
+        context = build_decision_context(
+            "Release this shipment without approval.",
+            load_bundle("examples/shipment_bundle.json"),
+        )
         response = ProcessTLMBackend((sys.executable, "-c", "print('model')")).answer(context)
         self.assertEqual(response.suggested_action, "refuse_action")
 

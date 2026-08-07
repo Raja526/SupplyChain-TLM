@@ -12,6 +12,12 @@ from .prompt import format_prompt
 
 def clean_model_output(output: str) -> str:
     """Remove known inference telemetry from text-only local model output."""
+    # Reasoning traces are not the user-facing answer. If a backend emits an
+    # incomplete trace, discard it so the caller can use deterministic fallback.
+    if "<think>" in output.lower():
+        start = output.lower().find("<think>")
+        end = output.lower().find("</think>", start)
+        output = output[end + len("</think>"):] if end >= 0 else output[:start]
     ignored_prefixes = (
         "qwen config:",
         "prompt_tokens=",
@@ -26,15 +32,38 @@ def clean_model_output(output: str) -> str:
 def safe_action_for(context: DecisionContext) -> str | None:
     """Derive workflow metadata from deterministic state, never model text."""
     facts = dict((key, value) for _, key, value in context.domain_facts)
+    request = context.request.lower()
+    if any(
+        phrase in request
+        for phrase in (
+            "without approval",
+            "bypass approval",
+            "skip approval",
+            "ignore approval",
+            "without authorization",
+            "bypass authorization",
+        )
+    ):
+        return "refuse_action"
     if facts.get("approval_present", "true").lower() == "false":
         return "refuse_action"
     if not context.validation_passed:
         return "request_document_review"
-    request = context.request.lower()
     action_terms = ("release", "clearance", "clear", "post", "approve", "execute", "dispatch", "leave the port", "depart")
     if any(term in request for term in action_terms):
         return "request_approval"
     return None
+
+
+def enforce_safety_notice(answer: str, action: str | None) -> str:
+    """Make the deterministic workflow requirement explicit beside model text."""
+    notices = {
+        "request_document_review": "Deterministic control: release is blocked until document review resolves the validation issues.",
+        "request_approval": "Deterministic control: procurement_manager approval is required before any release action.",
+        "refuse_action": "Deterministic control: the requested action is refused by policy.",
+    }
+    notice = notices.get(action)
+    return f"{answer}\n\n{notice}" if notice else answer
 
 
 @dataclass(frozen=True)
@@ -56,4 +85,5 @@ class ProcessTLMBackend:
         answer = clean_model_output(completed.stdout)
         if not answer:
             raise RuntimeError("local model returned no usable answer")
-        return TLMResponse(answer, 0.0, context.references, safe_action_for(context))
+        action = safe_action_for(context)
+        return TLMResponse(enforce_safety_notice(answer, action), 0.0, context.references, action)
