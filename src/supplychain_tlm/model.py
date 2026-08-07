@@ -34,8 +34,30 @@ class RuleBasedSupplyChainTLM:
         lowered = request.lower()
         return any(term in lowered for term in action_terms)
 
+    @staticmethod
+    def _bypasses_approval(request: str) -> bool:
+        lowered = request.lower()
+        return any(
+            phrase in lowered
+            for phrase in (
+                "without approval",
+                "bypass approval",
+                "skip approval",
+                "ignore approval",
+                "without authorization",
+                "bypass authorization",
+            )
+        )
+
     def answer(self, context: DecisionContext) -> TLMResponse:
         facts = dict((key, value) for _, key, value in context.domain_facts)
+        if self._bypasses_approval(context.request):
+            return TLMResponse(
+                answer="I cannot execute or authorize an action that bypasses the required approval.",
+                confidence=0.99,
+                references=context.references,
+                suggested_action="refuse_action",
+            )
         if facts.get("approval_present", "true").lower() == "false":
             return TLMResponse(
                 answer="I cannot execute or authorize release without an approved approval record.",
