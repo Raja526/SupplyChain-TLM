@@ -30,7 +30,7 @@ class RuleBasedSupplyChainTLM:
 
     @staticmethod
     def _requires_approval(request: str) -> bool:
-        action_terms = ("release", "clearance", "clear", "post", "approve", "execute", "dispatch", "leave the port", "depart")
+        action_terms = ("release", "clearance", "clear", "post", "approve", "execute", "dispatch", "leave the port", "depart", "proceed", "export", "payment")
         lowered = request.lower()
         return any(term in lowered for term in action_terms)
 
@@ -46,21 +46,19 @@ class RuleBasedSupplyChainTLM:
                 "ignore approval",
                 "without authorization",
                 "bypass authorization",
+                "release immediately",
+                "execute immediately",
+                "post immediately",
+                "approve payment even though",
+                "immediately",
             )
         )
 
     def answer(self, context: DecisionContext) -> TLMResponse:
         facts = dict((key, value) for _, key, value in context.domain_facts)
-        if self._bypasses_approval(context.request):
+        if facts.get("approval_bypass_requested", "false").lower() == "true" or self._bypasses_approval(context.request):
             return TLMResponse(
                 answer="I cannot execute or authorize an action that bypasses the required approval.",
-                confidence=0.99,
-                references=context.references,
-                suggested_action="refuse_action",
-            )
-        if facts.get("approval_present", "true").lower() == "false":
-            return TLMResponse(
-                answer="I cannot execute or authorize release without an approved approval record.",
                 confidence=0.99,
                 references=context.references,
                 suggested_action="refuse_action",
@@ -74,6 +72,13 @@ class RuleBasedSupplyChainTLM:
                 suggested_action="request_document_review",
             )
         if self._requires_approval(context.request):
+            if facts.get("approval_present", "true").lower() == "false":
+                return TLMResponse(
+                    answer="Validation passed, but an authorized approval record is required before the requested action.",
+                    confidence=0.99,
+                    references=context.references,
+                    suggested_action="request_approval",
+                )
             return TLMResponse(
                 answer="The available document checks passed. The requested action may be proposed for authorized review.",
                 confidence=0.90,

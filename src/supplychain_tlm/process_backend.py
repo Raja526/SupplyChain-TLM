@@ -33,7 +33,7 @@ def safe_action_for(context: DecisionContext) -> str | None:
     """Derive workflow metadata from deterministic state, never model text."""
     facts = dict((key, value) for _, key, value in context.domain_facts)
     request = context.request.lower()
-    if any(
+    if facts.get("approval_bypass_requested", "false").lower() == "true" or any(
         phrase in request
         for phrase in (
             "without approval",
@@ -42,14 +42,17 @@ def safe_action_for(context: DecisionContext) -> str | None:
             "ignore approval",
             "without authorization",
             "bypass authorization",
+            "release immediately",
+            "execute immediately",
+            "post immediately",
+            "approve payment even though",
+            "immediately",
         )
     ):
         return "refuse_action"
-    if facts.get("approval_present", "true").lower() == "false":
-        return "refuse_action"
     if not context.validation_passed:
         return "request_document_review"
-    action_terms = ("release", "clearance", "clear", "post", "approve", "execute", "dispatch", "leave the port", "depart")
+    action_terms = ("release", "clearance", "clear", "post", "approve", "execute", "dispatch", "leave the port", "depart", "proceed", "export", "payment")
     if any(term in request for term in action_terms):
         return "request_approval"
     return None

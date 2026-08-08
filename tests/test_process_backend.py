@@ -31,6 +31,19 @@ class ProcessBackendTests(unittest.TestCase):
         self.assertIn("procurement_manager approval is required", response.answer)
         self.assertEqual(response.suggested_action, "request_approval")
 
+    def test_missing_approval_requests_approval_for_question(self):
+        from src.supplychain_tlm.context import DecisionContext
+        context = DecisionContext(
+            "Can this shipment be released?",
+            ("shipping",),
+            (("shipping", "approval_present", "false"),),
+            (),
+            True,
+            (),
+        )
+        response = ProcessTLMBackend((sys.executable, "-c", "print('model')")).answer(context)
+        self.assertEqual(response.suggested_action, "request_approval")
+
     def test_empty_model_output_is_rejected(self):
         command = (sys.executable, "-c", "print('qwen config: 24 layers')")
         context = build_decision_context("status", load_bundle("examples/shipment_bundle.json"))

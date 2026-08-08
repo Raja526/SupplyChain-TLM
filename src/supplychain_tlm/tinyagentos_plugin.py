@@ -47,7 +47,10 @@ def answer_request(request: str, bundle: dict[str, Any], *, approved: bool = Tru
     if not approved:
         context = replace(
             context,
-            domain_facts=context.domain_facts + (("compliance", "approval_present", "false"),),
+            domain_facts=context.domain_facts + (
+                ("compliance", "approval_present", "false"),
+                ("compliance", "approval_bypass_requested", "true"),
+            ),
         )
     response = RuleBasedSupplyChainTLM().answer(context)
     return {
